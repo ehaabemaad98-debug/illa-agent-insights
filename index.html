@@ -277,19 +277,23 @@
 
 <main>
   <div class="kpis">
-    <div class="kpi"><div class="lbl">Total impact</div><div class="val" id="kImpact">—</div><div class="note">fulfilled GMV, EGP</div></div>
-    <div class="kpi"><div class="lbl">Agents active</div><div class="val" id="kAgents">—</div><div class="note">with orders in range</div></div>
-    <div class="kpi"><div class="lbl">Orders</div><div class="val" id="kOrders">—</div><div class="note">created in range</div></div>
-    <div class="kpi"><div class="lbl">Commission-screen clicks</div><div class="val" id="kClicks">—</div><div class="note">Mixpanel utilization</div></div>
-    <div class="kpi"><div class="lbl">Usage ↔ value</div><div class="val" id="kCorr">—</div><div class="note">Pearson r · clicks vs impact</div></div>
+    <div class="kpi"><div class="lbl" id="kImpactLbl">Total impact</div><div class="val" id="kImpact">—</div><div class="note" id="kImpactNote">fulfilled GMV, EGP</div></div>
+    <div class="kpi"><div class="lbl">Agents active</div><div class="val" id="kAgents">—</div><div class="note" id="kAgentsNote">with orders in range</div></div>
+    <div class="kpi"><div class="lbl" id="kOrdersLbl">Orders</div><div class="val" id="kOrders">—</div><div class="note">in range</div></div>
+    <div class="kpi"><div class="lbl" id="kClicksLbl">Commission-screen clicks</div><div class="val" id="kClicks">—</div><div class="note" id="kClicksNote">Mixpanel utilization</div></div>
+    <div class="kpi"><div class="lbl">Usage ↔ value</div><div class="val" id="kCorr">—</div><div class="note" id="kCorrNote">Pearson r · clicks vs impact</div></div>
   </div>
 
-  <div id="utilBanner">
-    <b>Utilization not connected yet.</b> The Y axis (commission-screen clicks from the Presell Sales Agent App in Mixpanel) shows zero until the clicks source is synced.
-    <span class="ar">بيانات الاستخدام لم تُربط بعد.</span>
-  </div>
+  <div id="utilBanner"></div>
 
   <div class="controls">
+    <div class="ctrl"><span class="cap">Segment</span>
+      <div class="seg" id="segSeg" role="group" aria-label="Agent segment">
+        <button data-s="field" aria-pressed="true">Field sales</button>
+        <button data-s="telesales" aria-pressed="false">Telesales</button>
+        <button data-s="fulfillment" aria-pressed="false">Fulfillment</button>
+      </div>
+    </div>
     <div class="ctrl"><span class="cap">Range</span>
       <div class="seg" id="rangeSeg" role="group" aria-label="Time range">
         <button data-r="all" aria-pressed="true">All time</button>
@@ -329,13 +333,7 @@
   <div class="card tblwrap">
     <table>
       <caption>Ranked by impact in the selected range — click a row for the monthly story</caption>
-      <thead>
-        <tr>
-          <th>#</th><th>Agent</th><th>Governorate</th>
-          <th class="num">Impact (EGP)</th><th class="num">Impact Δ MoM</th>
-          <th class="num">Orders</th><th class="num">Visits</th><th class="num">Clicks</th><th class="num">Clicks Δ MoM</th>
-        </tr>
-      </thead>
+      <thead><tr id="tblHead"></tr></thead>
       <tbody id="tblBody"></tbody>
     </table>
   </div>
@@ -353,14 +351,14 @@
   <div class="dbody">
     <div class="dkpis">
       <div class="dkpi"><div class="l">Impact</div><div class="v" id="dImpact">—</div></div>
-      <div class="dkpi"><div class="l">Orders</div><div class="v" id="dOrders">—</div></div>
-      <div class="dkpi"><div class="l">Visits</div><div class="v" id="dVisits">—</div></div>
-      <div class="dkpi"><div class="l">Clicks</div><div class="v" id="dClicks">—</div></div>
+      <div class="dkpi"><div class="l" id="dOrdersLbl">Orders</div><div class="v" id="dOrders">—</div></div>
+      <div class="dkpi"><div class="l" id="dVisitsLbl">Visits</div><div class="v" id="dVisits">—</div></div>
+      <div class="dkpi"><div class="l" id="dClicksLbl">Clicks</div><div class="v" id="dClicks">—</div></div>
     </div>
     <div class="verdict" id="dVerdict"></div>
     <div class="dsec">Monthly value <span class="ar">· القيمة الشهرية</span></div>
     <div class="dchart" id="dImpactChart"></div>
-    <div class="dsec">Commission-screen usage by month <span class="ar">· الاستخدام الشهري</span></div>
+    <div class="dsec" id="dClicksSec">Commission-screen usage by month <span class="ar">· الاستخدام الشهري</span></div>
     <div class="dchart" id="dClicksChart"></div>
   </div>
 </div>
@@ -371,11 +369,53 @@
 /* ════════════════════════════════════════════════════════════════════════
    ILLA Control Tower — Agent Insights (static, no build).
    Data: the `agent-insights` edge function (public snapshot GET, POST = sync).
-   X axis = IMPACT  : fulfilled GMV (EGP) the agent brought from orders (Neon OLAP).
-   Y axis = UTIL    : commission-screen clicks in the PWA (Mixpanel, Presell App).
+   X axis = IMPACT  : per segment — field/fulfillment = fulfilled GMV (EGP),
+                      telesales = telesales order value (EGP). (Neon OLAP.)
+   Y axis = UTIL    : per segment — field = commission-screen clicks (CashVan
+                      App), telesales = top-bar tab taps (Tele-Sales App),
+                      fulfillment = top-bar tab taps (CashVan App). Mixpanel.
    ═══════════════════════════════════════════════════════════════════════ */
 const FUNCTION_URL = "https://xhhdgazmqeyoijgrsrzg.supabase.co/functions/v1/agent-insights";
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ── segments ──
+   field       : sales + delivery agents (Neon agent_daily_summary)
+                 Y = commission-screen clicks in the CashVan App
+   telesales   : telesales agents (Neon telesales_performance; impact = order value,
+                 "visits" = calls)
+                 Y = top-bar tab taps in the Tele-Sales App
+   fulfillment : delivery agents (fulfilled cash-van GMV)
+                 Y = top-bar tab taps in the CashVan App                */
+const SEGMENTS = {
+  field: {
+    label: "Field sales",
+    types: ["sales_agent", "delivery_agent"],
+    impactName: "Impact (EGP)", impactKpi: "Total impact", impactNote: "fulfilled GMV, EGP",
+    utilName: "Commission-screen clicks", utilShort: "clicks", utilKpi: "Commission-screen clicks",
+    utilNote: "CashVan App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
+    utilSec: "Commission-screen usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
+    pendingNote: "The Y axis (commission-screen clicks from the CashVan App in Mixpanel) shows zero until the taps source is synced — Mixpanel billing is pending.",
+  },
+  telesales: {
+    label: "Telesales",
+    types: ["telesales_agent"],
+    impactName: "Order value (EGP)", impactKpi: "Total order value", impactNote: "telesales order value, EGP",
+    utilName: "Top-bar tab taps", utilShort: "taps", utilKpi: "Top-bar tab taps",
+    utilNote: "Tele-Sales App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Calls",
+    utilSec: "Top-bar tab usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
+    pendingNote: "The Y axis (top-bar tab taps — Dashboard / History / Call Scores / Commissions — from the Tele-Sales App in Mixpanel) shows zero until the taps source is synced — Mixpanel billing is pending.",
+  },
+  fulfillment: {
+    label: "Fulfillment",
+    types: ["delivery_agent"],
+    impactName: "Fulfilled GMV (EGP)", impactKpi: "Total impact", impactNote: "fulfilled cash-van GMV, EGP",
+    utilName: "Top-bar tab taps", utilShort: "taps", utilKpi: "Top-bar tab taps",
+    utilNote: "CashVan App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
+    utilSec: "Top-bar tab usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
+    pendingNote: "The Y axis (top-bar tab taps — Orders / Stock / Profile / Commission — from the CashVan App in Mixpanel) shows zero until the taps source is synced — Mixpanel billing is pending.",
+  },
+};
+const SEG = () => SEGMENTS[filters.segment] ?? SEGMENTS.field;
 
 /* ── palette mirror ── */
 const C = {
@@ -393,6 +433,7 @@ const GOV_EN = {
 /* ── state ── */
 let DATA = null;                 // snapshot
 const filters = {
+  segment: "field",              // field | telesales | fulfillment
   range: "all", from: null, to: null,
   govs: new Set(),               // empty = all
   hidden: new Set(),             // agent_ids hidden
@@ -453,8 +494,10 @@ function govOf(a) {
 
 function visibleAgents() {
   const months = activeMonths();
+  const seg = SEG();
   const rows = [];
   for (const a of DATA.agents) {
+    if (!seg.types.includes(a.agent_type)) continue;
     if (filters.hidden.has(a.agent_id)) continue;
     if (filters.govs.size && !a.governorates.some((g) => filters.govs.has(GOV_EN[g] || g))) continue;
     const ms = (a.monthly ?? []).filter((m) => !months || months.has(monthKey(m.month)));
@@ -521,15 +564,15 @@ function drawScatter() {
       backgroundColor: "#fffdf8", borderColor: "rgba(22,35,59,.22)",
       textStyle: { color: C.ink, fontFamily: "IBM Plex Sans", fontSize: 12.5 },
       formatter: (p) => {
-        const r = p.data.raw;
+        const r = p.data.raw, seg = SEG();
         return `<b>${p.name}</b> <span style="color:var(--ink-60)">· ${r.gov}</span><br/>
-          Impact: <b>${fmtEGP(r.impact)} EGP</b><br/>
-          Clicks: <b>${fmtInt(r.clicks)}</b> · Orders: ${fmtInt(r.orders)} · Visits: ${fmtInt(r.visits)}<br/>
+          ${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>
+          ${seg.utilShort}: <b>${fmtInt(r.clicks)}</b> · ${seg.ordersLbl}: ${fmtInt(r.orders)} · ${seg.visitsLbl}: ${fmtInt(r.visits)}<br/>
           <span style="color:${C.nile}">click to open monthly story</span>`;
       },
     },
     xAxis: {
-      type: showLog ? "log" : "value", name: "Impact (EGP)", nameLocation: "middle",
+      type: showLog ? "log" : "value", name: SEG().impactName, nameLocation: "middle",
       nameGap: 30, min: showLog ? 1 : 0, max: showLog ? undefined : Math.ceil(maxI * 1.06),
       nameTextStyle: { fontFamily: "IBM Plex Mono", fontSize: 11, color: C.ink60 },
       axisLabel: {
@@ -539,7 +582,7 @@ function drawScatter() {
       splitLine: { lineStyle: { color: "rgba(22,35,59,.07)" } },
     },
     yAxis: {
-      type: "value", name: "Commission-screen clicks", nameLocation: "middle", nameGap: 34,
+      type: "value", name: SEG().utilName, nameLocation: "middle", nameGap: 34,
       min: 0, max: Math.max(5, Math.ceil(maxC * 1.12)), minInterval: 1,
       nameTextStyle: { fontFamily: "IBM Plex Mono", fontSize: 11, color: C.ink60 },
       axisLabel: { fontFamily: "IBM Plex Mono", fontSize: 10.5, color: C.ink60, formatter: (v) => fmtInt(v) },
@@ -580,7 +623,9 @@ function drawRail() {
   const q = document.getElementById("agentSearch").value.trim().toLowerCase();
   const list = document.getElementById("agentList");
   list.innerHTML = "";
+  const segTypes = SEG().types;
   const agents = DATA.agents
+    .filter((a) => segTypes.includes(a.agent_type))
     .filter((a) => !q || a.agent_name.toLowerCase().includes(q))
     .sort((x, y) => x.agent_name.localeCompare(y.agent_name));
   for (const a of agents) {
@@ -606,6 +651,12 @@ function drawRail() {
 /* ── table ── */
 function drawTable() {
   const rows = visibleAgents();
+  const seg = SEG();
+  document.getElementById("tblHead").innerHTML =
+    `<th>#</th><th>Agent</th><th>Governorate</th>` +
+    `<th class="num">${seg.impactName}</th><th class="num">Δ MoM</th>` +
+    `<th class="num">${seg.ordersLbl}</th><th class="num">${seg.visitsLbl}</th>` +
+    `<th class="num">${seg.utilShort}</th><th class="num">${seg.utilShort} Δ MoM</th>`;
   const tb = document.getElementById("tblBody");
   tb.innerHTML = "";
   rows.slice(0, 60).forEach((r, i) => {
@@ -634,6 +685,13 @@ function drawTable() {
 /* ── KPIs ── */
 function drawKpis() {
   const rows = visibleAgents();
+  const seg = SEG();
+  document.getElementById("kImpactLbl").textContent = seg.impactKpi;
+  document.getElementById("kImpactNote").textContent = seg.impactNote;
+  document.getElementById("kOrdersLbl").textContent = seg.ordersLbl;
+  document.getElementById("kClicksLbl").textContent = seg.utilKpi;
+  document.getElementById("kClicksNote").textContent = seg.utilNote;
+  document.getElementById("kCorrNote").textContent = "Pearson r · " + seg.utilShort + " vs impact";
   document.getElementById("kImpact").textContent = fmtEGP(rows.reduce((s, r) => s + r.impact, 0));
   document.getElementById("kAgents").textContent = fmtInt(rows.length);
   document.getElementById("kOrders").textContent = fmtInt(rows.reduce((s, r) => s + r.orders, 0));
@@ -642,9 +700,13 @@ function drawKpis() {
   document.getElementById("kCorr").textContent = r == null ? "—" : (r >= 0 ? "+" : "") + r.toFixed(2);
   document.getElementById("lastSync").textContent =
     "last synced " + (DATA.synced_at ? fmtDate(DATA.synced_at) : "never") +
-    (DATA.clicks_synced_at ? " · clicks " + fmtDate(DATA.clicks_synced_at) : "");
+    (DATA.clicks_synced_at ? " · " + seg.utilShort + " " + fmtDate(DATA.clicks_synced_at) : "");
   const noClicks = !DATA.clicks_synced_at && rows.every((x) => x.clicks === 0);
-  document.getElementById("utilBanner").style.display = noClicks ? "block" : "none";
+  const banner = document.getElementById("utilBanner");
+  banner.innerHTML = noClicks
+    ? `<b>Utilization not connected yet.</b> ${seg.pendingNote} <span class="ar">بيانات الاستخدام لم تُربط بعد.</span>`
+    : "";
+  banner.style.display = noClicks ? "block" : "none";
 }
 
 /* ── drawer ── */
@@ -653,8 +715,12 @@ function openDrawer(agentId) {
   const row = visibleAgents().find((r) => r.a.agent_id === agentId) ?? fullRowFor(agentId);
   if (!row) return;
   currentDrawerId = agentId;
-  const a = row.a;
+  const a = row.a, seg = SEG();
   document.getElementById("dName").textContent = a.agent_name;
+  document.getElementById("dOrdersLbl").textContent = seg.ordersLbl;
+  document.getElementById("dVisitsLbl").textContent = seg.visitsLbl;
+  document.getElementById("dClicksLbl").textContent = seg.utilShort;
+  document.getElementById("dClicksSec").innerHTML = seg.utilSec;
   document.getElementById("dMeta").innerHTML = `
     <span class="tag solid">${row.gov}</span>
     <span class="tag">${a.agent_type ?? "agent"}</span>
@@ -671,7 +737,7 @@ function openDrawer(agentId) {
   else {
     const di = row.impactMoM, dc = row.clicksMoM;
     const arrow = (x) => (x >= 0 ? "▲ +" : "▼ ") + (x * 100).toFixed(0) + "%";
-    v.innerHTML = `Latest month vs previous: impact <b>${arrow(di)}</b>, commission-screen usage <b>${arrow(dc)}</b>. ` +
+    v.innerHTML = `Latest month vs previous: impact <b>${arrow(di)}</b>, ${seg.utilShort} usage <b>${arrow(dc)}</b>. ` +
       (di >= 0 && dc >= 0 ? "Value and usage are improving together." :
        di >= 0 && dc < 0 ? "Value is up while usage slipped — worth a check-in." :
        di < 0 && dc >= 0 ? "Usage is up but value dipped — coaching opportunity." :
@@ -698,7 +764,7 @@ function openDrawer(agentId) {
   }, { notMerge: true });
   dChartC.setOption({
     animation: !reducedMotion, grid: { left: 44, right: 18, top: 26, bottom: 28 },
-    tooltip: { trigger: "axis", valueFormatter: (v) => fmtInt(v) + " clicks" },
+    tooltip: { trigger: "axis", valueFormatter: (v) => fmtInt(v) + " " + SEG().utilShort },
     xAxis: { type: "category", data: labels, ...axis },
     yAxis: { type: "value", ...axis, axisLabel: { ...axis.axisLabel, formatter: fmtInt }, minInterval: 1 },
     series: [{
@@ -737,7 +803,9 @@ function buildGovChips() {
   all.innerHTML = `All governorates`;
   all.addEventListener("click", () => { filters.govs.clear(); renderAll(); });
   wrap.appendChild(all);
-  const govs = new Set(DATA.agents.map((a) => govOf(a)));
+  const govs = new Set(
+    DATA.agents.filter((a) => SEG().types.includes(a.agent_type)).map((a) => govOf(a))
+  );
   for (const g of ["Cairo", "Giza", "Alexandria", "Beheira", ...[...govs].filter((x) => !["Cairo","Giza","Alexandria","Beheira"].includes(x))]) {
     if (!govs.has(g)) continue;
     const b = document.createElement("button");
@@ -759,11 +827,20 @@ function renderAll() {
   document.getElementById("toM").value = filters.to ?? "";
   document.querySelectorAll("#rangeSeg button").forEach((b) =>
     b.setAttribute("aria-pressed", String(b.dataset.r === filters.range)));
+  document.querySelectorAll("#segSeg button").forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.s === filters.segment)));
   document.getElementById("customRange").classList.toggle("on", filters.range === "custom");
   if (currentDrawerId) openDrawer(currentDrawerId);
 }
 
 function wire() {
+  document.getElementById("segSeg").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (filters.segment === b.dataset.s) return;
+    filters.segment = b.dataset.s;
+    filters.hidden.clear();          // hidden sets don't transfer across segments
+    renderAll();
+  });
   document.getElementById("rangeSeg").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
     filters.range = b.dataset.r;
@@ -800,8 +877,8 @@ async function syncNow() {
     if (!res.ok || !out.ok) throw new Error(out.error || "sync failed");
     await load();
     renderAll();
-    toast(out.mixpanel?.ok ? "Synced — impact and commission-screen clicks refreshed" :
-      "Impact synced from the OLAP" + (out.mixpanel?.detail ? ` (clicks: ${out.mixpanel.detail})` : ""));
+    toast(out.mixpanel?.ok ? "Synced — impact and utilization taps refreshed" :
+      "Impact synced from the OLAP" + (out.mixpanel?.detail ? ` (taps: ${out.mixpanel.detail})` : ""));
   } catch (err) {
     toast("Sync failed: " + err.message);
   } finally {
