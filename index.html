@@ -296,7 +296,8 @@
     </div>
     <div class="ctrl"><span class="cap">Range</span>
       <div class="seg" id="rangeSeg" role="group" aria-label="Time range">
-        <button data-r="all" aria-pressed="true">All time</button>
+        <button data-r="cur" aria-pressed="true">This month</button>
+        <button data-r="all">All time</button>
         <button data-r="1">Last month</button>
         <button data-r="2">2 months</button>
         <button data-r="3">3 months</button>
@@ -332,7 +333,7 @@
 
   <div class="card tblwrap">
     <table>
-      <caption>Ranked by impact in the selected range — click a row for the monthly story</caption>
+      <caption>Ranked by revenue in the selected range — click a row for the monthly story</caption>
       <thead><tr id="tblHead"></tr></thead>
       <tbody id="tblBody"></tbody>
     </table>
@@ -350,7 +351,7 @@
   </div>
   <div class="dbody">
     <div class="dkpis">
-      <div class="dkpi"><div class="l">Impact</div><div class="v" id="dImpact">—</div></div>
+      <div class="dkpi"><div class="l" id="dImpactLbl">Revenue</div><div class="v" id="dImpact">—</div></div>
       <div class="dkpi"><div class="l" id="dOrdersLbl">Orders</div><div class="v" id="dOrders">—</div></div>
       <div class="dkpi"><div class="l" id="dVisitsLbl">Visits</div><div class="v" id="dVisits">—</div></div>
       <div class="dkpi"><div class="l" id="dClicksLbl">Clicks</div><div class="v" id="dClicks">—</div></div>
@@ -390,7 +391,7 @@ const SEGMENTS = {
   field: {
     label: "Field sales",
     types: ["sales_agent", "delivery_agent"],
-    impactName: "Impact (EGP)", impactKpi: "Total impact", impactNote: "fulfilled GMV, EGP",
+    impactShort: "Revenue", impactName: "Revenue (EGP)", impactKpi: "Total revenue", impactNote: "total_revenue · Control Tower convention",
     utilName: "Commission-screen clicks", utilShort: "clicks", utilKpi: "Commission-screen clicks",
     utilNote: "CashVan App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
     utilSec: "Commission-screen usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
@@ -399,7 +400,7 @@ const SEGMENTS = {
   telesales: {
     label: "Telesales",
     types: ["telesales_agent"],
-    impactName: "Order value (EGP)", impactKpi: "Total order value", impactNote: "telesales order value, EGP",
+    impactShort: "Order value", impactName: "Order value (EGP)", impactKpi: "Total order value", impactNote: "telesales order value, EGP",
     utilName: "Top-bar tab taps", utilShort: "taps", utilKpi: "Top-bar tab taps",
     utilNote: "Tele-Sales App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Calls",
     utilSec: "Top-bar tab usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
@@ -408,7 +409,7 @@ const SEGMENTS = {
   fulfillment: {
     label: "Fulfillment",
     types: ["delivery_agent"],
-    impactName: "Fulfilled GMV (EGP)", impactKpi: "Total impact", impactNote: "fulfilled cash-van GMV, EGP",
+    impactShort: "Revenue", impactName: "Revenue (EGP)", impactKpi: "Total revenue", impactNote: "total_revenue · Control Tower convention",
     utilName: "Top-bar tab taps", utilShort: "taps", utilKpi: "Top-bar tab taps",
     utilNote: "CashVan App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
     utilSec: "Top-bar tab usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
@@ -434,7 +435,8 @@ const GOV_EN = {
 let DATA = null;                 // snapshot
 const filters = {
   segment: "field",              // field | telesales | fulfillment
-  range: "all", from: null, to: null,
+  range: "cur",                  // cur (default) | all | 1 | 2 | 3 | custom
+  from: null, to: null,
   govs: new Set(),               // empty = all
   hidden: new Set(),             // agent_ids hidden
   log: true,
@@ -470,6 +472,9 @@ function activeMonths() {
   const now = new Date();
   const cur = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   if (filters.range === "all") return null; // no restriction
+  if (filters.range === "cur") {
+    return new Set([cur.toISOString().slice(0, 7)]); // current month-to-date
+  }
   if (filters.range === "custom") {
     if (!filters.from || !filters.to) return null;
     const out = [];
@@ -485,6 +490,13 @@ function activeMonths() {
     out.push(d.toISOString().slice(0, 7));
   }
   return new Set(out);
+}
+
+/* YYYY-MM of the calendar month before the given "YYYY-MM-DD" */
+function monthBefore(monthIso) {
+  const d = new Date(monthIso.slice(0, 7) + "-01T00:00:00Z");
+  d.setUTCMonth(d.getUTCMonth() - 1);
+  return d.toISOString().slice(0, 7);
 }
 
 function govOf(a) {
@@ -504,14 +516,18 @@ function visibleAgents() {
     if (!ms.length) continue;
     const sum = (k) => ms.reduce((t, m) => t + Number(m[k] || 0), 0);
     const impact = sum("impact"), orders = sum("orders"), visits = sum("visits"), clicks = sum("clicks");
-    // MoM: compare the two most recent complete months inside the range
-    const sorted = [...ms].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1);
-    const last = sorted.at(-1), prev = sorted.at(-2);
+    // MoM vs the actual previous calendar month (looked up in full history so
+    // "This month" still shows a delta), plus its value for the table column.
+    const sorted = [...(a.monthly ?? [])].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1);
+    const lastInRange = [...ms].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1).at(-1);
+    const prev = lastInRange ? sorted.find((m) => monthKey(m.month) === monthBefore(lastInRange.month)) : null;
     rows.push({
       a, months: sorted, impact, orders, visits, clicks,
       gov: govOf(a),
-      impactMoM: prev ? (Number(last.impact) - Number(prev.impact)) / Math.max(Number(prev.impact), 1) : null,
-      clicksMoM: prev ? (Number(last.clicks) - Number(prev.clicks)) / Math.max(Number(prev.clicks), 1) : null,
+      lastImpact: prev ? Number(prev.impact || 0) : null,
+      lastClicks: prev ? Number(prev.clicks || 0) : null,
+      impactMoM: lastInRange && prev ? (Number(lastInRange.impact) - Number(prev.impact)) / Math.max(Number(prev.impact), 1) : null,
+      clicksMoM: lastInRange && prev ? (Number(lastInRange.clicks) - Number(prev.clicks)) / Math.max(Number(prev.clicks), 1) : null,
     });
   }
   return rows.sort((x, y) => y.impact - x.impact);
@@ -654,7 +670,8 @@ function drawTable() {
   const seg = SEG();
   document.getElementById("tblHead").innerHTML =
     `<th>#</th><th>Agent</th><th>Governorate</th>` +
-    `<th class="num">${seg.impactName}</th><th class="num">Δ MoM</th>` +
+    `<th class="num">${seg.impactName}</th>` +
+    `<th class="num">Last month</th><th class="num">Δ vs last month</th>` +
     `<th class="num">${seg.ordersLbl}</th><th class="num">${seg.visitsLbl}</th>` +
     `<th class="num">${seg.utilShort}</th><th class="num">${seg.utilShort} Δ MoM</th>`;
   const tb = document.getElementById("tblBody");
@@ -670,6 +687,7 @@ function drawTable() {
       <td>${r.a.agent_name}</td>
       <td>${r.gov}</td>
       <td class="num">${fmtEGP(r.impact)}</td>
+      <td class="num">${r.lastImpact == null ? "—" : fmtEGP(r.lastImpact)}</td>
       <td class="num ${r.impactMoM == null ? "" : r.impactMoM >= 0 ? "delta-up" : "delta-down"}">${dImp}</td>
       <td class="num">${fmtInt(r.orders)}</td>
       <td class="num">${fmtInt(r.visits)}</td>
@@ -717,6 +735,7 @@ function openDrawer(agentId) {
   currentDrawerId = agentId;
   const a = row.a, seg = SEG();
   document.getElementById("dName").textContent = a.agent_name;
+  document.getElementById("dImpactLbl").textContent = seg.impactShort;
   document.getElementById("dOrdersLbl").textContent = seg.ordersLbl;
   document.getElementById("dVisitsLbl").textContent = seg.visitsLbl;
   document.getElementById("dClicksLbl").textContent = seg.utilShort;
