@@ -133,6 +133,11 @@
   }
   .switch { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12.5px; }
   .switch input { accent-color: var(--nile); }
+  #monthPick {
+    font-family: var(--mono); font-size: 12px; border: 1px solid var(--ink-25);
+    border-radius: 7px; padding: 6px 9px; background: var(--card); color: var(--ink);
+    cursor: pointer;
+  }
 
   /* ── main grid ──────────────────────────────────────────── */
   .board { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; }
@@ -294,19 +299,11 @@
         <button data-s="fulfillment" aria-pressed="false">Fulfillment</button>
       </div>
     </div>
-    <div class="ctrl"><span class="cap">Range</span>
-      <div class="seg" id="rangeSeg" role="group" aria-label="Time range">
-        <button data-r="cur" aria-pressed="true">This month</button>
-        <button data-r="all">All time</button>
-        <button data-r="1">Last month</button>
-        <button data-r="2">2 months</button>
-        <button data-r="3">3 months</button>
-        <button data-r="custom">Custom</button>
-      </div>
+    <div class="ctrl"><span class="cap">Month</span>
+      <input type="month" id="monthPick" aria-label="Select month" />
     </div>
-    <div class="ctrl" id="customRange">
-      <span class="cap">From</span><input type="month" id="fromM" />
-      <span class="cap">To</span><input type="month" id="toM" />
+    <div class="ctrl">
+      <button class="chip" id="allTimeBtn" aria-pressed="false">All time</button>
     </div>
     <div class="ctrl"><span class="cap">Governorates</span><span id="govChips"></span></div>
     <div class="ctrl">
@@ -433,10 +430,11 @@ const GOV_EN = {
 
 /* ── state ── */
 let DATA = null;                 // snapshot
+const _now = new Date();
 const filters = {
   segment: "field",              // field | telesales | fulfillment
-  range: "cur",                  // cur (default) | all | 1 | 2 | 3 | custom
-  from: null, to: null,
+  month: new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), 1)).toISOString().slice(0, 7), // YYYY-MM, default = current month
+  range: "cur",                  // cur (one selected month, default) | all
   govs: new Set(),               // empty = all
   hidden: new Set(),             // agent_ids hidden
   log: true,
@@ -469,27 +467,8 @@ async function load() {
 
 /* ── derived view ── */
 function activeMonths() {
-  const now = new Date();
-  const cur = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   if (filters.range === "all") return null; // no restriction
-  if (filters.range === "cur") {
-    return new Set([cur.toISOString().slice(0, 7)]); // current month-to-date
-  }
-  if (filters.range === "custom") {
-    if (!filters.from || !filters.to) return null;
-    const out = [];
-    const d = new Date(filters.from + "-01T00:00:00Z");
-    const end = new Date(filters.to + "-01T00:00:00Z");
-    while (d <= end) { out.push(d.toISOString().slice(0, 7)); d.setUTCMonth(d.getUTCMonth() + 1); }
-    return new Set(out);
-  }
-  const n = Number(filters.range); // 1..3 → last N complete months
-  const out = [];
-  for (let i = 1; i <= n; i++) {
-    const d = new Date(cur); d.setUTCMonth(d.getUTCMonth() - i);
-    out.push(d.toISOString().slice(0, 7));
-  }
-  return new Set(out);
+  return new Set([filters.month]);          // the single selected month
 }
 
 /* YYYY-MM of the calendar month before the given "YYYY-MM-DD" */
@@ -498,6 +477,10 @@ function monthBefore(monthIso) {
   d.setUTCMonth(d.getUTCMonth() - 1);
   return d.toISOString().slice(0, 7);
 }
+
+/* "2026-08-01" → "Aug 2026" */
+const fmtMonth = (ym) =>
+  new Date(ym.slice(0, 7) + "-01T00:00:00Z").toLocaleString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
 
 function govOf(a) {
   for (const g of a.governorates ?? []) if (GOV_EN[g]) return GOV_EN[g];
@@ -668,10 +651,13 @@ function drawRail() {
 function drawTable() {
   const rows = visibleAgents();
   const seg = SEG();
+  const monthMode = filters.range === "cur";
+  const impactHead = monthMode ? `${seg.impactName} · ${fmtMonth(filters.month)}` : seg.impactName;
+  const prevHead = monthMode ? fmtMonth(monthBefore(filters.month)) : "Previous month";
   document.getElementById("tblHead").innerHTML =
     `<th>#</th><th>Agent</th><th>Governorate</th>` +
-    `<th class="num">${seg.impactName}</th>` +
-    `<th class="num">Last month</th><th class="num">Δ vs last month</th>` +
+    `<th class="num">${impactHead}</th>` +
+    `<th class="num">${prevHead}</th><th class="num">Δ</th>` +
     `<th class="num">${seg.ordersLbl}</th><th class="num">${seg.visitsLbl}</th>` +
     `<th class="num">${seg.utilShort}</th><th class="num">${seg.utilShort} Δ MoM</th>`;
   const tb = document.getElementById("tblBody");
@@ -842,13 +828,8 @@ const GOV_EN_AR = { "Cairo": "القاهرة", "Giza": "الجيزة", "Alexandr
 
 function renderAll() {
   drawKpis(); drawScatter(); drawRail(); drawTable(); buildGovChips();
-  document.getElementById("fromM").value = filters.from ?? "";
-  document.getElementById("toM").value = filters.to ?? "";
-  document.querySelectorAll("#rangeSeg button").forEach((b) =>
-    b.setAttribute("aria-pressed", String(b.dataset.r === filters.range)));
-  document.querySelectorAll("#segSeg button").forEach((b) =>
-    b.setAttribute("aria-pressed", String(b.dataset.s === filters.segment)));
-  document.getElementById("customRange").classList.toggle("on", filters.range === "custom");
+  document.getElementById("monthPick").value = filters.month;
+  document.getElementById("allTimeBtn").setAttribute("aria-pressed", String(filters.range === "all"));
   if (currentDrawerId) openDrawer(currentDrawerId);
 }
 
@@ -860,19 +841,15 @@ function wire() {
     filters.hidden.clear();          // hidden sets don't transfer across segments
     renderAll();
   });
-  document.getElementById("rangeSeg").addEventListener("click", (e) => {
-    const b = e.target.closest("button"); if (!b) return;
-    filters.range = b.dataset.r;
-    if (filters.range === "custom") {
-      const now = new Date();
-      const iso = (d) => d.toISOString().slice(0, 7);
-      if (!filters.from) { const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 1)); filters.from = iso(d); }
-      if (!filters.to) { filters.to = iso(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))); }
-    }
+  document.getElementById("monthPick").addEventListener("change", (e) => {
+    filters.month = e.target.value || filters.month;
+    filters.range = "cur";           // picking a month leaves all-time mode
     renderAll();
   });
-  document.getElementById("fromM").addEventListener("change", (e) => { filters.from = e.target.value || null; renderAll(); });
-  document.getElementById("toM").addEventListener("change", (e) => { filters.to = e.target.value || null; renderAll(); });
+  document.getElementById("allTimeBtn").addEventListener("click", () => {
+    filters.range = filters.range === "all" ? "cur" : "all";
+    renderAll();
+  });
   document.getElementById("logScale").addEventListener("change", (e) => { filters.log = e.target.checked; drawScatter(); });
   document.getElementById("agentSearch").addEventListener("input", drawRail);
   document.getElementById("showAll").addEventListener("click", () => { filters.hidden.clear(); renderAll(); });
