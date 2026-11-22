@@ -628,7 +628,7 @@ const fmtInt = (n) => (n == null || isNaN(n) ? "—" : Math.round(n).toLocaleStr
 const fmtDate = (iso) => (iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "—");
 const monthKey = (m) => String(m).slice(0, 7);
 const fmtMonth = (ym) => new Date(ym + "-01T00:00:00Z").toLocaleString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
-const monthBefore = (ym) => { const d = new Date(ym + "-01T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); };
+const monthBefore = (monthIso) => { const d = new Date(monthIso.slice(0, 7) + "-01T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); };
 const initials = (name) => name.split(" ").filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 function avatarColor(name) {
   const palette = ["oklch(0.72 0.15 30)", "oklch(0.7 0.15 145)", "oklch(0.7 0.14 250)", "oklch(0.72 0.16 320)", "oklch(0.75 0.14 80)", "oklch(0.68 0.15 200)"];
