@@ -1354,8 +1354,6 @@ const FUL_AGENTS = [0,0,0,0,0,0,0,0,1,0,11,6,0,6,1,3,3,3,4,0,0,0];
 function renderReport() {
   const li = (t) => `<li>${t}</li>`;
   const everUnlocked = Object.keys(UNLOCK_DAYS).length;
-  const unlockers = continuing.filter((r) => r.cohort !== "never");
-  const never = continuing.filter((r) => r.cohort === "never");
   const all = fieldAgents();
   const continuing = all
     .map((a) => ({
@@ -1382,6 +1380,8 @@ function renderReport() {
   const afterAvg = avg(continuing.map((r) => r.aAvg));
   const uplift = beforeAvg > 0 ? (afterAvg - beforeAvg) / beforeAvg : null;
   const upPct = uplift == null ? "—" : (uplift >= 0 ? "+" : "") + Math.round(uplift * 100) + "%";
+  const unlockers = continuing.filter((r) => r.cohort !== "never");
+  const never = continuing.filter((r) => r.cohort === "never");
 
   // ── headline + lede (plain language)
   document.getElementById("repHeadline").textContent =
