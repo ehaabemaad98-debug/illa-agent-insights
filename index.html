@@ -3,334 +3,525 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ILLA Control Tower — Agent Insights</title>
+<title>Agent Insights — ILLA Control Tower</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <style>
+  /* ── Control Tower design tokens (src/styles.css) ─────────────────────── */
   :root {
-    --paper: #f5f2ea;
-    --card: #fffdf8;
-    --ink: #16233b;
-    --ink-60: rgba(22, 35, 59, 0.6);
-    --ink-25: rgba(22, 35, 59, 0.22);
-    --ink-10: rgba(22, 35, 59, 0.09);
-    --nile: #0e7c7b;
-    --nile-soft: rgba(14, 124, 123, 0.12);
-    --amber: #b97a0e;
-    --cairo: #16233b;
-    --giza: #0e7c7b;
-    --alex: #b97a0e;
-    --beheira: #a85751;
-    --star-zone: rgba(14, 124, 123, 0.07);
-    --watch-zone: rgba(185, 122, 14, 0.06);
-    --radius: 10px;
-    --mono: "IBM Plex Mono", monospace;
-    --sans: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
-    --disp: "Archivo", "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --radius: 0.75rem;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.21 0.04 256);
+    --brand: oklch(0.58 0.09 220);
+    --brand-foreground: oklch(1 0 0);
+    --brand-deep: oklch(0.48 0.08 220);
+    --brand-banner-from: oklch(0.58 0.09 220);
+    --brand-banner-to: oklch(0.48 0.1 230);
+    --success: oklch(0.68 0.16 160);
+    --warning: oklch(0.75 0.16 70);
+    --danger: oklch(0.62 0.21 25);
+    --info: oklch(0.62 0.18 295);
+    --kpi-orders: oklch(0.55 0.09 210);
+    --kpi-orders-bg: oklch(0.95 0.025 210);
+    --kpi-visits: oklch(0.62 0.18 295);
+    --kpi-visits-bg: oklch(0.95 0.03 295);
+    --kpi-agents: oklch(0.62 0.16 165);
+    --kpi-agents-bg: oklch(0.95 0.03 165);
+    --kpi-regions: oklch(0.74 0.16 70);
+    --kpi-regions-bg: oklch(0.95 0.04 75);
+    --chart-1: var(--kpi-orders);
+    --chart-2: var(--kpi-visits);
+    --chart-3: var(--kpi-agents);
+    --chart-4: var(--kpi-regions);
+    --chart-5: oklch(0.6 0.18 290);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.129 0.042 264.695);
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-foreground);
+    --secondary: oklch(0.968 0.007 247.896);
+    --muted: oklch(0.968 0.007 247.896);
+    --muted-foreground: oklch(0.554 0.046 257.417);
+    --accent: oklch(0.968 0.007 247.896);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.929 0.013 255.508);
+    --input: oklch(0.929 0.013 255.508);
+    --ring: oklch(0.704 0.04 256.788);
+
+    --font-sans: "IBM Plex Sans Arabic", "Cairo", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
     font-size: 14px;
-    line-height: 1.45;
+    line-height: 1.5;
   }
-  ::selection { background: var(--nile-soft); }
+  ::selection { background: color-mix(in oklab, var(--brand) 15%, transparent); }
+  button { font-family: var(--font-sans); }
 
-  /* ── header ─────────────────────────────────────────────── */
-  header {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 14px 22px;
-    border-bottom: 1px solid var(--ink-25);
+  /* CT: glass-card — white 85% + blur */
+  .glass-card {
+    background: color-mix(in oklab, white 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+  }
+  .card-solid {
     background: var(--card);
-    position: sticky; top: 0; z-index: 20;
+    border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
-  .brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
-  .brand .mark {
-    font-family: var(--disp); font-weight: 800; font-size: 17px; letter-spacing: 0.06em;
-    text-transform: uppercase; white-space: nowrap;
+  .animate-fade-in { animation: fade-in 0.4s ease-out both; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .animate-fade-in { animation: none; } }
+
+  /* ── banner (HeaderBanner pattern) ───────────────────────────────────── */
+  .banner {
+    border-radius: var(--radius);
+    overflow: hidden;
+    color: #fff;
+    padding: 20px;
+    background: linear-gradient(90deg, var(--brand-banner-from), var(--brand-banner-to));
+    animation: fade-in 0.4s ease-out both;
   }
-  .brand .mark em { font-style: normal; color: var(--nile); }
-  .brand .sub {
-    font-family: var(--mono); font-size: 11px; color: var(--ink-60);
-    letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
+  .banner .row { display: flex; align-items: center; gap: 16px; }
+  .banner .logo {
+    height: 48px; width: 48px; border-radius: 9999px;
+    background: rgb(255 255 255 / 0.2);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 17px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    flex-shrink: 0;
   }
-  .runway { flex: 1; height: 0; border-top: 1px dashed var(--ink-25); min-width: 30px; }
-  .sync-wrap { display: flex; align-items: center; gap: 12px; }
-  #lastSync { font-family: var(--mono); font-size: 11px; color: var(--ink-60); white-space: nowrap; }
+  .banner h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .banner h1 .sub { display: block; font-size: 12.5px; font-weight: 400; color: rgb(255 255 255 / 0.85); margin-top: 2px; }
+  .banner .date-pill {
+    display: inline-flex; align-items: center;
+    border-radius: 9999px; background: rgb(255 255 255 / 0.2);
+    padding: 6px 14px; font-size: 13px; font-weight: 500;
+    white-space: nowrap;
+  }
+  .banner .pulse-strip {
+    margin-top: 16px;
+    border-radius: calc(var(--radius) - 2px);
+    background: rgb(255 255 255 / 0.1);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgb(255 255 255 / 0.15);
+    padding: 12px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 9999px; padding: 4px 10px;
+    font-size: 12px; font-weight: 600; color: #fff;
+    background: color-mix(in oklab, var(--success) 85%, white);
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .pulse-dot { position: relative; display: inline-flex; height: 8px; width: 8px; }
+  .pulse-dot::before {
+    content: ""; position: absolute; inset: 0; border-radius: 9999px;
+    background: #fff; opacity: 0.75; animation: pulse-dot 2s ease-in-out infinite;
+  }
+  .pulse-dot::after { content: ""; position: relative; border-radius: 9999px; background: #fff; height: 8px; width: 8px; }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  @media (prefers-reduced-motion: reduce) { .pulse-dot::before { animation: none; } }
+  .pulse-strip p { margin: 0; font-size: 13px; line-height: 1.6; color: rgb(255 255 255 / 0.95); }
+  .pulse-strip b { font-weight: 600; }
   #syncBtn {
-    font-family: var(--disp); font-weight: 700; font-size: 12.5px; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--card);
-    background: var(--nile); border: none; border-radius: 999px;
-    padding: 9px 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
+    border-radius: 9999px; border: 1px solid rgb(255 255 255 / 0.3);
+    background: rgb(255 255 255 / 0.2); color: #fff;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 18px; cursor: pointer; flex-shrink: 0;
+    transition: background 0.15s ease;
   }
-  #syncBtn:hover { filter: brightness(1.08); }
-  #syncBtn:focus-visible, .chip:focus-visible, .seg button:focus-visible, .rowbtn:focus-visible {
-    outline: 2px solid var(--nile); outline-offset: 2px;
-  }
+  #syncBtn:hover { background: rgb(255 255 255 / 0.3); }
+  #syncBtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
   #syncBtn[disabled] { opacity: 0.6; cursor: progress; }
-  #syncBtn .spin { display: inline-block; }
   #syncBtn.busy .spin { animation: rot 0.9s linear infinite; }
   @keyframes rot { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { #syncBtn.busy .spin { animation: none; } }
 
-  main { max-width: 1460px; margin: 0 auto; padding: 18px 22px 60px; }
+  main { max-width: 1460px; margin: 0 auto; padding: 20px 22px 60px; }
 
-  /* ── KPI band ───────────────────────────────────────────── */
-  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 16px 0 14px; }
+  /* ── KPI cards (KpiCards pattern) ────────────────────────────────────── */
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin: 16px 0; }
   .kpi {
-    background: var(--card); border: 1px solid var(--ink-10); border-radius: var(--radius);
-    padding: 12px 16px 10px;
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
-  .kpi .lbl {
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--ink-60);
+  .kpi:hover { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); transform: translateY(-2px); }
+  .kpi .head { display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding-bottom: 8px; }
+  .kpi .lbl { font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+  .kpi .tile {
+    display: flex; height: 36px; width: 36px; align-items: center; justify-content: center;
+    border-radius: calc(var(--radius) - 4px);
   }
-  .kpi .val { font-family: var(--disp); font-weight: 800; font-size: 26px; margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .kpi .note { font-size: 11px; color: var(--ink-60); margin-top: 2px; }
+  .kpi .tile svg { height: 16px; width: 16px; }
+  .kpi .val { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .kpi .note { margin-top: 4px; font-size: 13px; color: var(--muted-foreground); }
+  .kpi .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    border-radius: 9999px; padding: 4px 10px;
+    font-size: 12px; font-weight: 600;
+  }
 
-  /* ── banner ─────────────────────────────────────────────── */
-  #utilBanner {
-    display: none; margin: 0 0 14px; padding: 10px 16px; border-radius: var(--radius);
-    border: 1px solid rgba(185, 122, 14, 0.45); background: rgba(185, 122, 14, 0.08);
-    color: var(--ink); font-size: 13px;
-  }
-  #utilBanner .ar { font-family: "IBM Plex Sans Arabic", var(--sans); }
-  #utilBanner b { font-weight: 600; }
+  /* ── section headings ────────────────────────────────────────────────── */
+  .sec-h { margin: 4px 0 12px; }
+  .sec-h h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--muted-foreground); }
 
-  /* ── controls ───────────────────────────────────────────── */
-  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 14px; }
-  .ctrl { display: flex; align-items: center; gap: 8px; }
-  .ctrl .cap {
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--ink-60);
+  /* ── FilterBar (FilterBar pattern) ───────────────────────────────────── */
+  .filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .fb-seg { display: inline-flex; align-items: center; border-radius: calc(var(--radius) - 4px); background: var(--muted); padding: 4px; }
+  .fb-seg button {
+    border: none; background: transparent; cursor: pointer;
+    padding: 4px 16px; font-size: 14px; border-radius: calc(var(--radius) - 6px);
+    color: var(--muted-foreground); transition: all 0.15s ease;
   }
-  .seg { display: inline-flex; border: 1px solid var(--ink-25); border-radius: 999px; overflow: hidden; background: var(--card); }
-  .seg button {
-    border: none; background: transparent; padding: 7px 13px; cursor: pointer;
-    font-family: var(--sans); font-size: 12.5px; font-weight: 500; color: var(--ink);
+  .fb-seg button[aria-pressed="true"] { background: var(--card); color: var(--foreground); font-weight: 500; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+  .fb-seg button:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+  .fb-divider { width: 1px; height: 24px; background: var(--border); }
+  .fb-select {
+    display: inline-flex; align-items: center; gap: 4px;
+    border-radius: calc(var(--radius) - 4px);
+    border: 1px solid var(--border); background: var(--card);
+    padding: 0 8px; height: 32px; font-size: 14px;
   }
-  .seg button + button { border-left: 1px solid var(--ink-10); }
-  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--card); font-weight: 600; }
-  .chip {
-    border: 1px solid var(--ink-25); background: var(--card); border-radius: 999px;
-    padding: 6px 13px; cursor: pointer; font-size: 12.5px; font-weight: 500; color: var(--ink);
-    display: inline-flex; align-items: center; gap: 7px;
+  .fb-select svg { height: 14px; width: 14px; color: var(--muted-foreground); flex-shrink: 0; }
+  .fb-select select {
+    border: none; background: transparent; font-family: var(--font-sans);
+    font-size: 13px; color: var(--foreground); padding: 0 4px; height: 30px;
+    outline: none; cursor: pointer;
   }
-  .chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--ink-25)); }
-  .chip[aria-pressed="false"] { opacity: 0.38; }
-  .chip .ar { font-family: "IBM Plex Sans Arabic", var(--sans); }
-  #customRange { display: none; align-items: center; gap: 6px; }
-  #customRange.on { display: inline-flex; }
-  #customRange input {
-    font-family: var(--mono); font-size: 12px; border: 1px solid var(--ink-25);
-    border-radius: 7px; padding: 5px 8px; background: var(--card); color: var(--ink);
+  .fb-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: calc(var(--radius) - 4px);
+    border: 1px solid var(--border); background: var(--card);
+    height: 32px; padding: 0 12px; font-size: 13px; color: var(--foreground);
+    cursor: pointer; transition: background 0.15s ease;
   }
-  .switch { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12.5px; }
-  .switch input { accent-color: var(--nile); }
-  #monthPick {
-    font-family: var(--mono); font-size: 12px; border: 1px solid var(--ink-25);
-    border-radius: 7px; padding: 6px 9px; background: var(--card); color: var(--ink);
+  .fb-btn:hover { background: var(--muted); }
+  .fb-btn[aria-pressed="true"] { background: var(--muted); font-weight: 500; }
+  .fb-btn:focus-visible, .fb-select:focus-within { outline: 2px solid color-mix(in oklab, var(--ring) 30%, transparent); }
+  .fb-month {
+    border: 1px solid var(--border); border-radius: calc(var(--radius) - 4px);
+    background: var(--card); height: 32px; padding: 0 8px;
+    font-family: var(--font-sans); font-size: 13px; color: var(--foreground);
     cursor: pointer;
   }
+  .switch { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-size: 13px; color: var(--foreground); }
+  .switch input { accent-color: var(--brand); width: 15px; height: 15px; }
+  .fb-spacer { flex: 1; }
 
-  /* ── main grid ──────────────────────────────────────────── */
-  .board { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; }
-  .card {
-    background: var(--card); border: 1px solid var(--ink-10); border-radius: var(--radius);
-  }
-  .scope { position: relative; height: 520px; }
-  .scope .ztitle {
-    position: absolute; inset: 0; pointer-events: none; display: none;
-    font-family: var(--disp); font-weight: 700; letter-spacing: 0.1em;
-    text-transform: uppercase; font-size: 11px; color: var(--ink-25);
-  }
+  /* ── board ───────────────────────────────────────────────────────────── */
+  .board { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; }
+  .scope-card { border-radius: var(--radius); padding: 20px; }
+  .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .card-head h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .card-head .sub { font-size: 12px; color: var(--muted-foreground); margin-top: 2px; }
+  .scope { height: 520px; }
   #chart { width: 100%; height: 100%; }
 
-  /* ── agent rail ─────────────────────────────────────────── */
-  .rail { display: flex; flex-direction: column; max-height: 520px; }
+  /* quadrant pills (chart badges, SalesCharts badge pattern) */
+  .zone-pill {
+    font-size: 12px; font-weight: 600;
+    border-radius: 9999px; padding: 2px 8px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+
+  /* ── rail (agent visibility) ─────────────────────────────────────────── */
+  .rail { display: flex; flex-direction: column; border-radius: var(--radius); max-height: 560px; }
   .rail .head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 12px 14px 10px; border-bottom: 1px solid var(--ink-10);
+    padding: 16px 16px 12px;
   }
-  .rail .head .t { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-60); }
-  .rail .head .acts { display: flex; gap: 6px; }
+  .rail .head h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .rail .head .sub { font-size: 12px; color: var(--muted-foreground); margin-top: 2px; }
+  .rail .acts { display: flex; gap: 6px; }
   .rowbtn {
-    border: 1px solid var(--ink-25); background: transparent; border-radius: 7px;
-    font-size: 11px; padding: 4px 8px; cursor: pointer; color: var(--ink); font-family: var(--sans);
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid var(--border); background: var(--card);
+    border-radius: calc(var(--radius) - 6px);
+    font-size: 12px; font-weight: 500; padding: 4px 10px;
+    cursor: pointer; color: var(--foreground); transition: background 0.15s ease;
+  }
+  .rowbtn:hover { background: var(--muted); }
+  .rail .searchwrap { position: relative; margin: 0 16px 10px; }
+  .rail .searchwrap svg {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    height: 14px; width: 14px; color: var(--muted-foreground);
   }
   #agentSearch {
-    margin: 10px 14px 8px; border: 1px solid var(--ink-25); border-radius: 7px;
-    padding: 7px 10px; font-family: var(--sans); font-size: 13px; background: var(--paper); color: var(--ink);
+    width: 100%; font-family: var(--font-sans);
+    font-size: 12px; padding: 8px 12px 8px 30px;
+    border-radius: calc(var(--radius) - 4px);
+    border: 1px solid var(--border); background: var(--background);
+    color: var(--foreground); outline: none;
   }
-  #agentList { overflow-y: auto; padding: 2px 6px 10px; }
+  #agentSearch:focus { box-shadow: 0 0 0 2px color-mix(in oklab, var(--ring) 30%, transparent); }
+  #agentList { overflow-y: auto; padding: 2px 8px 12px; scrollbar-width: thin; }
   .ag {
-    display: flex; align-items: center; gap: 9px; padding: 6px 9px; border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    height: 44px; padding: 0 8px;
+    border-radius: calc(var(--radius) - 4px);
+    cursor: pointer; transition: background 0.1s ease;
   }
-  .ag:hover { background: var(--paper); }
-  .ag input { accent-color: var(--nile); flex: none; }
-  .ag .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-  .ag .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
-  .ag .gv { font-family: var(--mono); font-size: 10px; color: var(--ink-60); flex: none; }
-  .ag.off .nm { text-decoration: line-through; color: var(--ink-60); }
+  .ag:hover { background: color-mix(in oklab, var(--muted) 40%, transparent); }
+  .ag input { accent-color: var(--brand); flex: none; width: 14px; height: 14px; }
+  .ag .avatar {
+    height: 32px; width: 32px; border-radius: calc(var(--radius) - 6px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .ag .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 600; }
+  .ag .gv { font-size: 10px; color: var(--muted-foreground); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .ag.off .nm { text-decoration: line-through; color: var(--muted-foreground); font-weight: 400; }
 
-  /* ── table ──────────────────────────────────────────────── */
-  .tblwrap { margin-top: 14px; overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; min-width: 760px; }
-  caption {
-    text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--ink-60); padding: 12px 14px 6px;
-  }
-  th {
-    text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--ink-60); font-weight: 600;
-    border-bottom: 1px solid var(--ink-25); padding: 8px 14px; white-space: nowrap;
+  /* ── table (shadcn table feel) ───────────────────────────────────────── */
+  .tblwrap { margin-top: 16px; border-radius: var(--radius); padding: 4px 0; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 860px; }
+  thead th {
+    text-align: left; font-size: 12px; font-weight: 500;
+    color: var(--muted-foreground);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    white-space: nowrap; height: 40px;
   }
   th.num, td.num { text-align: right; }
-  td { padding: 8px 14px; border-bottom: 1px solid var(--ink-10); font-size: 13px; white-space: nowrap; }
-  td.num { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
-  tr.agent-row { cursor: pointer; }
-  tr.agent-row:hover td { background: var(--paper); }
-  .delta-up { color: var(--nile); font-weight: 600; }
-  .delta-down { color: var(--beheira); font-weight: 600; }
+  td {
+    padding: 12px 16px; border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    font-size: 13px; white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; }
+  tr.agent-row { cursor: pointer; transition: background 0.1s ease; }
+  tr.agent-row:hover td { background: color-mix(in oklab, var(--muted) 40%, transparent); }
+  .delta { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; }
+  .delta svg { height: 12px; width: 12px; }
+  .delta.up { color: var(--success); }
+  .delta.down { color: var(--danger); }
+  .avatar-sm {
+    display: inline-flex; height: 24px; width: 24px; border-radius: 6px;
+    align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 600; color: #fff; margin-right: 10px; vertical-align: middle;
+  }
 
-  /* ── drawer ─────────────────────────────────────────────── */
+  /* ── drawer ──────────────────────────────────────────────────────────── */
   #drawer {
-    position: fixed; top: 0; right: 0; height: 100dvh; width: min(520px, 100vw);
-    background: var(--card); border-left: 1px solid var(--ink-25);
+    position: fixed; top: 0; right: 0; height: 100dvh; width: min(540px, 100vw);
+    background: var(--card); border-left: 1px solid var(--border);
     transform: translateX(102%); transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
     z-index: 40; display: flex; flex-direction: column;
-    box-shadow: -18px 0 50px rgba(22, 35, 59, 0.12);
+    box-shadow: -18px 0 50px rgb(0 0 0 / 0.12);
   }
   @media (prefers-reduced-motion: reduce) { #drawer { transition: none; } }
   #drawer.open { transform: none; }
-  #drawer .dhead {
-    padding: 18px 22px 14px; border-bottom: 1px solid var(--ink-10);
+  #drawer .dbanner {
+    padding: 18px 22px 14px; color: #fff;
+    background: linear-gradient(90deg, var(--brand-banner-from), var(--brand-banner-to));
     display: flex; justify-content: space-between; gap: 12px; align-items: flex-start;
   }
-  #drawer .dhead h2 { margin: 0; font-family: var(--disp); font-weight: 800; font-size: 21px; }
-  #drawer .dhead .meta { display: flex; gap: 7px; margin-top: 7px; flex-wrap: wrap; }
-  .tag {
-    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-    border: 1px solid var(--ink-25); border-radius: 999px; padding: 3px 9px; color: var(--ink-60);
+  #drawer .dbanner h2 { margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+  #drawer .dbanner .avatar-lg {
+    height: 40px; width: 40px; border-radius: 9999px;
+    background: rgb(255 255 255 / 0.2); display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
   }
-  .tag.solid { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  #drawer .dbanner .meta { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+  .dtag {
+    display: inline-flex; align-items: center;
+    border-radius: 9999px; background: rgb(255 255 255 / 0.2);
+    padding: 3px 10px; font-size: 11px; font-weight: 500; color: #fff;
+  }
   #closeDrawer {
-    border: 1px solid var(--ink-25); background: transparent; border-radius: 50%;
-    width: 32px; height: 32px; font-size: 15px; cursor: pointer; color: var(--ink); flex: none;
+    border: 1px solid rgb(255 255 255 / 0.3); background: rgb(255 255 255 / 0.15);
+    border-radius: 9999px; width: 32px; height: 32px; font-size: 14px;
+    cursor: pointer; color: #fff; flex: none;
   }
+  #closeDrawer:hover { background: rgb(255 255 255 / 0.25); }
   #drawer .dbody { overflow-y: auto; padding: 16px 22px 30px; }
-  .dkpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-  .dkpi { border: 1px solid var(--ink-10); border-radius: 8px; padding: 8px 10px; }
-  .dkpi .l { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-60); }
-  .dkpi .v { font-family: var(--disp); font-weight: 700; font-size: 17px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .dkpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .dkpi { border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); padding: 10px 12px; background: var(--card); }
+  .dkpi .l { font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+  .dkpi .v { font-size: 18px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .dchart { height: 210px; margin: 4px 0 18px; }
-  .dsec {
-    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--ink-60); margin: 6px 0 2px;
-  }
-  .dsec .ar { font-family: "IBM Plex Sans Arabic", var(--sans); }
+  .dsec { font-size: 13px; font-weight: 600; color: var(--foreground); margin: 6px 0 2px; }
+  .dsec .sub { font-size: 11px; font-weight: 400; color: var(--muted-foreground); margin-left: 6px; }
   .verdict {
-    border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px;
-    border: 1px solid var(--ink-10); background: var(--paper);
+    border-radius: calc(var(--radius) - 2px); padding: 10px 14px; font-size: 13px;
+    margin-bottom: 14px; line-height: 1.6;
+    border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+    background: var(--card);
   }
   .verdict b { font-weight: 600; }
 
-  /* ── toast / veil ───────────────────────────────────────── */
+  /* ── toast / veil ────────────────────────────────────────────────────── */
   #toast {
     position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px);
-    background: var(--ink); color: var(--card); padding: 10px 18px; border-radius: 999px;
-    font-size: 13px; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 60;
+    background: var(--foreground); color: var(--background);
+    padding: 10px 18px; border-radius: 9999px;
+    font-size: 13px; opacity: 0; pointer-events: none;
+    transition: all 0.25s ease; z-index: 60;
   }
   #toast.on { opacity: 1; transform: translate(-50%, 0); }
-  #drawerVeil {
-    position: fixed; inset: 0; background: rgba(22, 35, 59, 0.35); z-index: 35;
-    display: none;
-  }
+  #drawerVeil { position: fixed; inset: 0; background: rgb(0 0 0 / 0.35); z-index: 35; display: none; }
   #drawerVeil.on { display: block; }
 
   @media (max-width: 1080px) {
     .kpis { grid-template-columns: repeat(3, 1fr); }
     .board { grid-template-columns: 1fr; }
-    .rail { max-height: 300px; }
+    .rail { max-height: 320px; }
     .scope { height: 430px; }
+    .banner .date-pill { display: none; }
   }
   @media (max-width: 640px) {
-    header { flex-wrap: wrap; }
     .kpis { grid-template-columns: repeat(2, 1fr); }
     main { padding: 14px 12px 50px; }
+    .banner .row { flex-wrap: wrap; }
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="mark">ILLA <em>Control Tower</em></div>
-    <div class="sub">Agent Insights · Impact × Utilization</div>
-  </div>
-  <div class="runway"></div>
-  <div class="sync-wrap">
-    <span id="lastSync">loading…</span>
-    <button id="syncBtn"><span class="spin">⟳</span> Sync now</button>
-  </div>
-</header>
-
-<main>
-  <div class="kpis">
-    <div class="kpi"><div class="lbl" id="kImpactLbl">Total impact</div><div class="val" id="kImpact">—</div><div class="note" id="kImpactNote">fulfilled GMV, EGP</div></div>
-    <div class="kpi"><div class="lbl">Agents active</div><div class="val" id="kAgents">—</div><div class="note" id="kAgentsNote">with orders in range</div></div>
-    <div class="kpi"><div class="lbl" id="kOrdersLbl">Orders</div><div class="val" id="kOrders">—</div><div class="note">in range</div></div>
-    <div class="kpi"><div class="lbl" id="kClicksLbl">Commission-screen clicks</div><div class="val" id="kClicks">—</div><div class="note" id="kClicksNote">Mixpanel utilization</div></div>
-    <div class="kpi"><div class="lbl">Usage ↔ value</div><div class="val" id="kCorr">—</div><div class="note" id="kCorrNote">Pearson r · clicks vs impact</div></div>
-  </div>
-
-  <div id="utilBanner"></div>
-
-  <div class="controls">
-    <div class="ctrl"><span class="cap">Segment</span>
-      <div class="seg" id="segSeg" role="group" aria-label="Agent segment">
-        <button data-s="field" aria-pressed="true">Field sales</button>
-        <button data-s="telesales" aria-pressed="false">Telesales</button>
-        <button data-s="fulfillment" aria-pressed="false">Fulfillment</button>
+<main style="padding-top:18px">
+  <!-- Banner (HeaderBanner pattern) -->
+  <section class="banner">
+    <div class="row">
+      <div class="logo">AI</div>
+      <div style="flex:1;min-width:0">
+        <h1>Agent Insights
+          <span class="sub">Impact × Utilization — every agent's value against how they use the tool</span>
+        </h1>
       </div>
+      <span class="date-pill" id="datePill"></span>
     </div>
-    <div class="ctrl"><span class="cap">Month</span>
-      <input type="month" id="monthPick" aria-label="Select month" />
+    <div class="pulse-strip">
+      <span class="status-badge" id="statusBadge">
+        <span class="pulse-dot"></span>
+        <span id="statusText">Live</span>
+      </span>
+      <div style="flex:1;min-width:0">
+        <p id="syncLine">
+          <b>Data pulse:</b> loading snapshot…
+        </p>
+      </div>
+      <button id="syncBtn"><span class="spin">⟳</span> Sync now</button>
     </div>
-    <div class="ctrl">
-      <button class="chip" id="allTimeBtn" aria-pressed="false">All time</button>
+  </section>
+
+  <!-- KPI band (KpiCards pattern) -->
+  <div class="sec-h" style="margin-top:20px"><h3 id="kpiSectionTitle">Selected range</h3></div>
+  <div class="kpis">
+    <div class="kpi glass-card animate-fade-in">
+      <div class="head">
+        <span class="lbl" id="kImpactLbl">Total revenue</span>
+        <div class="tile" style="background: var(--kpi-orders-bg)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="oklch(0.55 0.09 210)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+      </div>
+      <div class="val" id="kImpact">—</div>
+      <p class="note" id="kImpactNote">EGP in range</p>
     </div>
-    <div class="ctrl"><span class="cap">Governorates</span><span id="govChips"></span></div>
-    <div class="ctrl">
-      <label class="switch"><input type="checkbox" id="logScale" checked /> Log scale (impact)</label>
+    <div class="kpi glass-card animate-fade-in">
+      <div class="head">
+        <span class="lbl">Agents active</span>
+        <div class="tile" style="background: var(--kpi-agents-bg)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0.16 165)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
+      <div class="val" id="kAgents">—</div>
+      <p class="note" id="kAgentsNote">with orders in range</p>
     </div>
+    <div class="kpi glass-card animate-fade-in">
+      <div class="head">
+        <span class="lbl" id="kOrdersLbl">Orders</span>
+        <div class="tile" style="background: var(--kpi-visits-bg)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="oklch(0.62 0.18 295)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
+      </div>
+      <div class="val" id="kOrders">—</div>
+      <p class="note">in range</p>
+    </div>
+    <div class="kpi glass-card animate-fade-in">
+      <div class="head">
+        <span class="lbl" id="kClicksLbl">Commission-screen taps</span>
+        <div class="tile" style="background: var(--kpi-regions-bg)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="oklch(0.74 0.16 70)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9l5 12 1.8-5.2L21 14Z"/><path d="M7.2 2.2C8 1.5 9 1.1 10 1c1.5 0 2.9.6 3.9 1.6"/></svg>
+        </div>
+      </div>
+      <div class="val" id="kClicks">—</div>
+      <p class="note" id="kClicksNote">Mixpanel utilization</p>
+    </div>
+    <div class="kpi glass-card animate-fade-in">
+      <div class="head">
+        <span class="lbl">Usage ↔ value</span>
+        <span class="badge" id="kCorrBadge" style="background: color-mix(in oklab, var(--success) 12%, white); color: var(--success)">—</span>
+      </div>
+      <div class="val" id="kCorr">—</div>
+      <p class="note">Pearson r · taps vs impact</p>
+    </div>
+  </div>
+
+  <!-- FilterBar (FilterBar pattern) -->
+  <div class="filterbar">
+    <div class="fb-seg" id="segSeg" role="group" aria-label="Agent segment">
+      <button data-s="field" aria-pressed="true">Field sales</button>
+      <button data-s="telesales" aria-pressed="false">Telesales</button>
+      <button data-s="fulfillment" aria-pressed="false">Fulfillment</button>
+    </div>
+    <div class="fb-divider"></div>
+    <div class="fb-select">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      <select id="govSelect" aria-label="Governorate"><option value="">All governorates</option></select>
+    </div>
+    <div class="fb-select" id="monthWrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <select id="monthSelect" aria-label="Month"></select>
+    </div>
+    <button class="fb-btn" id="allTimeBtn" aria-pressed="false">All time</button>
+    <div class="fb-spacer"></div>
+    <label class="switch"><input type="checkbox" id="logScale" checked /> Log scale</label>
   </div>
 
   <div class="board">
-    <div class="card scope">
-      <div id="chart"></div>
+    <div class="scope-card glass-card">
+      <div class="card-head">
+        <div>
+          <h3 id="chartTitle">Impact × Utilization</h3>
+          <div class="sub" id="chartSub">Every dot is an agent — click to open the monthly story</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap">
+          <span class="zone-pill" style="background: color-mix(in oklab, var(--success) 12%, white); color: var(--success)">★ Stars · top-right</span>
+          <span class="zone-pill" style="background: color-mix(in oklab, var(--warning) 14%, white); color: var(--warning)">ǃ Watch · bottom-left</span>
+        </div>
+      </div>
+      <div class="scope"><div id="chart"></div></div>
     </div>
-    <aside class="card rail">
+
+    <aside class="rail card-solid">
       <div class="head">
-        <span class="t" id="railTitle">Agents · 0</span>
+        <div>
+          <h3>Agents</h3>
+          <div class="sub" id="railSub">0 in view</div>
+        </div>
         <span class="acts">
           <button class="rowbtn" id="showAll">Show all</button>
           <button class="rowbtn" id="hideAll">Hide all</button>
         </span>
       </div>
-      <input id="agentSearch" type="search" placeholder="Search agents…" aria-label="Search agents" />
+      <div class="searchwrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="agentSearch" type="search" placeholder="Search agent…" aria-label="Search agents" />
+      </div>
       <div id="agentList" role="listbox" aria-label="Agent visibility"></div>
     </aside>
   </div>
 
-  <div class="card tblwrap">
+  <div class="tblwrap card-solid">
     <table>
-      <caption>Ranked by revenue in the selected range — click a row for the monthly story</caption>
       <thead><tr id="tblHead"></tr></thead>
       <tbody id="tblBody"></tbody>
     </table>
@@ -339,9 +530,9 @@
 
 <div id="drawerVeil"></div>
 <div id="drawer" role="dialog" aria-modal="true" aria-label="Agent details">
-  <div class="dhead">
+  <div class="dbanner">
     <div>
-      <h2 id="dName">—</h2>
+      <h2><span class="avatar-lg" id="dAvatar">—</span><span id="dName">—</span></h2>
       <div class="meta" id="dMeta"></div>
     </div>
     <button id="closeDrawer" aria-label="Close">✕</button>
@@ -354,9 +545,9 @@
       <div class="dkpi"><div class="l" id="dClicksLbl">Clicks</div><div class="v" id="dClicks">—</div></div>
     </div>
     <div class="verdict" id="dVerdict"></div>
-    <div class="dsec">Monthly value <span class="ar">· القيمة الشهرية</span></div>
+    <div class="dsec" id="dImpactSec">Monthly value <span class="sub">EGP per month</span></div>
     <div class="dchart" id="dImpactChart"></div>
-    <div class="dsec" id="dClicksSec">Commission-screen usage by month <span class="ar">· الاستخدام الشهري</span></div>
+    <div class="dsec" id="dClicksSec">Commission-screen usage by month <span class="sub">Mixpanel taps</span></div>
     <div class="dchart" id="dClicksChart"></div>
   </div>
 </div>
@@ -365,78 +556,63 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════════════
-   ILLA Control Tower — Agent Insights (static, no build).
+   ILLA Control Tower — Agent Insights (Control-Tower-styled static page).
    Data: the `agent-insights` edge function (public snapshot GET, POST = sync).
-   X axis = IMPACT  : per segment — field/fulfillment = fulfilled GMV (EGP),
-                      telesales = telesales order value (EGP). (Neon OLAP.)
-   Y axis = UTIL    : per segment — field = commission-screen clicks (CashVan
-                      App), telesales = top-bar tab taps (Tele-Sales App),
-                      fulfillment = top-bar tab taps (CashVan App). Mixpanel.
+   X = IMPACT (per segment, EGP, Neon OLAP). Y = UTILIZATION (Mixpanel taps).
    ═══════════════════════════════════════════════════════════════════════ */
 const FUNCTION_URL = "https://xhhdgazmqeyoijgrsrzg.supabase.co/functions/v1/agent-insights";
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* ── segments ──
-   field       : sales + delivery agents (Neon agent_daily_summary)
-                 Y = commission-screen clicks in the CashVan App
-   telesales   : telesales agents (Neon telesales_performance; impact = order value,
-                 "visits" = calls)
-                 Y = top-bar tab taps in the Tele-Sales App
-   fulfillment : delivery agents (fulfilled cash-van GMV)
-                 Y = top-bar tab taps in the CashVan App                */
+/* ── segments ── */
 const SEGMENTS = {
   field: {
     label: "Field sales",
     types: ["sales_agent", "delivery_agent"],
-    impactShort: "Revenue", impactName: "Revenue (EGP)", impactKpi: "Total revenue", impactNote: "total_revenue · Control Tower convention",
-    utilName: "Commission-screen clicks", utilShort: "clicks", utilKpi: "Commission-screen clicks",
-    utilNote: "CashVan App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
-    utilSec: "Commission-screen usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
-    pendingNote: "The Y axis (commission-screen clicks from the CashVan App in Mixpanel) shows zero until the taps source is synced — Mixpanel billing is pending.",
+    impactShort: "Revenue", impactName: "Revenue (EGP)", impactKpi: "Total revenue",
+    utilName: "Commission-screen taps", utilShort: "taps", utilKpi: "Commission-screen taps",
+    utilNote: "Presell PWA · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
   },
   telesales: {
     label: "Telesales",
     types: ["telesales_agent"],
-    impactShort: "Order value", impactName: "Order value (EGP)", impactKpi: "Total order value", impactNote: "telesales order value, EGP",
+    impactShort: "Order value", impactName: "Order value (EGP)", impactKpi: "Total order value",
     utilName: "Top-bar tab taps", utilShort: "taps", utilKpi: "Top-bar tab taps",
     utilNote: "Tele-Sales App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Calls",
-    utilSec: "Top-bar tab usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
-    pendingNote: "The Y axis (top-bar tab taps — Dashboard / History / Call Scores / Commissions — from the Tele-Sales App in Mixpanel) shows zero until the taps source is synced — Mixpanel billing is pending.",
   },
   fulfillment: {
     label: "Fulfillment",
     types: ["delivery_agent"],
-    impactShort: "Revenue", impactName: "Revenue (EGP)", impactKpi: "Total revenue", impactNote: "total_revenue · Control Tower convention",
+    impactShort: "Revenue", impactName: "Revenue (EGP)", impactKpi: "Total revenue",
     utilName: "Top-bar tab taps", utilShort: "taps", utilKpi: "Top-bar tab taps",
     utilNote: "CashVan App · Mixpanel", ordersLbl: "Orders", visitsLbl: "Visits",
-    utilSec: "Top-bar tab usage by month <span class=\"ar\">· الاستخدام الشهري</span>",
-    pendingNote: "The Y axis (top-bar tab taps — Orders / Stock / Profile / Commission — from the CashVan App in Mixpanel) shows zero until the taps source is synced — Mixpanel billing is pending.",
   },
 };
 const SEG = () => SEGMENTS[filters.segment] ?? SEGMENTS.field;
 
-/* ── palette mirror ── */
-const C = {
-  ink: "#16233b", ink60: "rgba(22,35,59,.6)", ink25: "rgba(22,35,59,.22)",
-  nile: "#0e7c7b", amber: "#b97a0e",
-  gov: { "Cairo": "#16233b", "Giza": "#0e7c7b", "Alexandria": "#b97a0e", "Beheira": "#a85751" },
+/* ── CT avatar palette (SalesCharts.avatarColor) per governorate ── */
+const GOV_COLOR = {
+  "Cairo": "oklch(0.7 0.14 250)",
+  "Giza": "oklch(0.7 0.15 145)",
+  "Alexandria": "oklch(0.72 0.16 320)",
+  "Beheira": "oklch(0.75 0.14 80)",
 };
+const FALLBACK_COLOR = "oklch(0.68 0.15 200)";
+const govColor = (g) => GOV_COLOR[g] ?? FALLBACK_COLOR;
 
-/* Arabic → English governorate mapping (Neon stores Arabic names) */
 const GOV_EN = {
   "القاهرة": "Cairo", "الجيزة": "Giza", "الإسكندرية": "Alexandria",
   "البحيرة": "Beheira", "القليوبية": "Qalyubia", "الشرقية": "Sharqia",
 };
 
 /* ── state ── */
-let DATA = null;                 // snapshot
+let DATA = null;
 const _now = new Date();
 const filters = {
-  segment: "field",              // field | telesales | fulfillment
-  month: new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), 1)).toISOString().slice(0, 7), // YYYY-MM, default = current month
-  range: "cur",                  // cur (one selected month, default) | all
-  govs: new Set(),               // empty = all
-  hidden: new Set(),             // agent_ids hidden
+  segment: "field",
+  month: new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), 1)).toISOString().slice(0, 7),
+  range: "cur", // cur (selected month, default) | all
+  gov: "",      // selected governorate (English name) — empty = all
+  hidden: new Set(),
   log: true,
 };
 
@@ -451,6 +627,15 @@ const fmtEGP = (n) => {
 const fmtInt = (n) => (n == null || isNaN(n) ? "—" : Math.round(n).toLocaleString("en-US"));
 const fmtDate = (iso) => (iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "—");
 const monthKey = (m) => String(m).slice(0, 7);
+const fmtMonth = (ym) => new Date(ym + "-01T00:00:00Z").toLocaleString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+const monthBefore = (ym) => { const d = new Date(ym + "-01T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); };
+const initials = (name) => name.split(" ").filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+function avatarColor(name) {
+  const palette = ["oklch(0.72 0.15 30)", "oklch(0.7 0.15 145)", "oklch(0.7 0.14 250)", "oklch(0.72 0.16 320)", "oklch(0.75 0.14 80)", "oklch(0.68 0.15 200)"];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return palette[h % palette.length];
+}
 
 function toast(msg) {
   const t = document.getElementById("toast");
@@ -467,26 +652,13 @@ async function load() {
 
 /* ── derived view ── */
 function activeMonths() {
-  if (filters.range === "all") return null; // no restriction
-  return new Set([filters.month]);          // the single selected month
+  if (filters.range === "all") return null;
+  return new Set([filters.month]);
 }
-
-/* YYYY-MM of the calendar month before the given "YYYY-MM-DD" */
-function monthBefore(monthIso) {
-  const d = new Date(monthIso.slice(0, 7) + "-01T00:00:00Z");
-  d.setUTCMonth(d.getUTCMonth() - 1);
-  return d.toISOString().slice(0, 7);
-}
-
-/* "2026-08-01" → "Aug 2026" */
-const fmtMonth = (ym) =>
-  new Date(ym.slice(0, 7) + "-01T00:00:00Z").toLocaleString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
-
 function govOf(a) {
   for (const g of a.governorates ?? []) if (GOV_EN[g]) return GOV_EN[g];
   return (a.governorates ?? [])[0] ? String((a.governorates)[0]) : "Other";
 }
-
 function visibleAgents() {
   const months = activeMonths();
   const seg = SEG();
@@ -494,28 +666,23 @@ function visibleAgents() {
   for (const a of DATA.agents) {
     if (!seg.types.includes(a.agent_type)) continue;
     if (filters.hidden.has(a.agent_id)) continue;
-    if (filters.govs.size && !a.governorates.some((g) => filters.govs.has(GOV_EN[g] || g))) continue;
+    if (filters.gov && govOf(a) !== filters.gov) continue;
     const ms = (a.monthly ?? []).filter((m) => !months || months.has(monthKey(m.month)));
     if (!ms.length) continue;
     const sum = (k) => ms.reduce((t, m) => t + Number(m[k] || 0), 0);
     const impact = sum("impact"), orders = sum("orders"), visits = sum("visits"), clicks = sum("clicks");
-    // MoM vs the actual previous calendar month (looked up in full history so
-    // "This month" still shows a delta), plus its value for the table column.
     const sorted = [...(a.monthly ?? [])].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1);
     const lastInRange = [...ms].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1).at(-1);
     const prev = lastInRange ? sorted.find((m) => monthKey(m.month) === monthBefore(lastInRange.month)) : null;
     rows.push({
       a, months: sorted, impact, orders, visits, clicks,
       gov: govOf(a),
-      lastImpact: prev ? Number(prev.impact || 0) : null,
-      lastClicks: prev ? Number(prev.clicks || 0) : null,
       impactMoM: lastInRange && prev ? (Number(lastInRange.impact) - Number(prev.impact)) / Math.max(Number(prev.impact), 1) : null,
       clicksMoM: lastInRange && prev ? (Number(lastInRange.clicks) - Number(prev.clicks)) / Math.max(Number(prev.clicks), 1) : null,
     });
   }
   return rows.sort((x, y) => y.impact - x.impact);
 }
-
 function pearson(pts) {
   const n = pts.length;
   if (n < 3) return null;
@@ -525,12 +692,13 @@ function pearson(pts) {
   for (const [x, y] of pts) { const dx = x - mx, dy = y - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
   return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
 }
+const axisFont = { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12, color: "oklch(0.554 0.046 257.417)" };
 
-/* ── scatter ── */
+/* ── scatter (Recharts conventions: horizontal-only border grid, muted axes,
+      white radius-12 tooltip, kpi-palette series) ── */
 let chart;
 function drawScatter() {
   const rows = visibleAgents();
-  const months = activeMonths();
   const showLog = filters.log && rows.length && rows.some((r) => r.impact > 0);
   const pts = rows
     .filter((r) => !showLog || r.impact > 0)
@@ -539,7 +707,7 @@ function drawScatter() {
       value: [showLog ? r.impact : Math.max(r.impact, 0), r.clicks],
       gov: r.gov,
       raw: r,
-      itemStyle: { color: C.gov[r.gov] ?? "#5c6a83", opacity: 0.82 },
+      itemStyle: { color: govColor(r.gov), opacity: 0.85 },
     }));
   const dropped = rows.length - pts.length;
 
@@ -552,90 +720,94 @@ function drawScatter() {
   chart.setOption({
     animation: !reducedMotion,
     animationDuration: 600,
-    grid: { left: 64, right: 30, top: 46, bottom: 46 },
+    grid: { left: 60, right: 24, top: 40, bottom: 44 },
     legend: {
-      top: 6, left: 8, itemWidth: 9, itemHeight: 9, icon: "circle",
-      textStyle: { fontFamily: "IBM Plex Sans", fontSize: 11.5, color: C.ink },
-      data: Object.keys(C.gov).filter((g) => pts.some((p) => p.gov === g)),
+      top: 2, left: 4, itemWidth: 9, itemHeight: 9, icon: "circle",
+      textStyle: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12, color: "oklch(0.554 0.046 257.417)" },
+      data: Object.keys(GOV_COLOR).filter((g) => pts.some((p) => p.gov === g)),
     },
     tooltip: {
       confine: true,
-      backgroundColor: "#fffdf8", borderColor: "rgba(22,35,59,.22)",
-      textStyle: { color: C.ink, fontFamily: "IBM Plex Sans", fontSize: 12.5 },
+      backgroundColor: "var(--card)",
+      borderColor: "var(--border)",
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 10,
+      textStyle: { color: "var(--foreground)", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12 },
+      extraCssText: "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);",
       formatter: (p) => {
         const r = p.data.raw, seg = SEG();
-        return `<b>${p.name}</b> <span style="color:var(--ink-60)">· ${r.gov}</span><br/>
-          ${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>
-          ${seg.utilShort}: <b>${fmtInt(r.clicks)}</b> · ${seg.ordersLbl}: ${fmtInt(r.orders)} · ${seg.visitsLbl}: ${fmtInt(r.visits)}<br/>
-          <span style="color:${C.nile}">click to open monthly story</span>`;
+        return `<b>${p.name}</b> <span style="color:oklch(0.554 0.046 257.417)">· ${r.gov}</span><br/>` +
+          `${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>` +
+          `${seg.utilShort}: <b>${fmtInt(r.clicks)}</b> · ${seg.ordersLbl}: ${fmtInt(r.orders)} · ${seg.visitsLbl}: ${fmtInt(r.visits)}<br/>` +
+          `<span style="color:var(--brand)">click to open monthly story</span>`;
       },
     },
     xAxis: {
       type: showLog ? "log" : "value", name: SEG().impactName, nameLocation: "middle",
-      nameGap: 30, min: showLog ? 1 : 0, max: showLog ? undefined : Math.ceil(maxI * 1.06),
-      nameTextStyle: { fontFamily: "IBM Plex Mono", fontSize: 11, color: C.ink60 },
-      axisLabel: {
-        fontFamily: "IBM Plex Mono", fontSize: 10.5, color: C.ink60,
-        formatter: (v) => fmtEGP(v),
-      },
-      splitLine: { lineStyle: { color: "rgba(22,35,59,.07)" } },
+      nameGap: 28, min: showLog ? 1 : 0, max: showLog ? undefined : Math.ceil(maxI * 1.06),
+      nameTextStyle: { ...axisFont },
+      axisLabel: { ...axisFont, formatter: (v) => fmtEGP(v) },
+      axisLine: { lineStyle: { color: "var(--border)" } },
+      axisTick: { show: false },
+      splitLine: { show: false },
     },
     yAxis: {
-      type: "value", name: SEG().utilName, nameLocation: "middle", nameGap: 34,
+      type: "value", name: SEG().utilName, nameLocation: "middle", nameGap: 36,
       min: 0, max: Math.max(5, Math.ceil(maxC * 1.12)), minInterval: 1,
-      nameTextStyle: { fontFamily: "IBM Plex Mono", fontSize: 11, color: C.ink60 },
-      axisLabel: { fontFamily: "IBM Plex Mono", fontSize: 10.5, color: C.ink60, formatter: (v) => fmtInt(v) },
-      splitLine: { lineStyle: { color: "rgba(22,35,59,.07)" } },
+      nameTextStyle: { ...axisFont },
+      axisLabel: { ...axisFont, formatter: (v) => fmtInt(v) },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "var(--border)", width: 1 }, show: true },
     },
     series: [{
       type: "scatter", data: pts, symbolSize: 13,
       emphasis: { focus: "self", scale: 1.5 },
       markLine: pts.length > 2 ? {
         silent: true, symbol: "none", animation: false,
-        lineStyle: { color: C.ink25, type: "dashed", width: 1 },
-        label: {
-          fontFamily: "IBM Plex Mono", fontSize: 10, color: C.ink60, formatter: (p) => "median " + fmtEGP(p.value),
-        },
+        lineStyle: { color: "oklch(0.929 0.013 255.508)", type: "dashed", width: 1 },
+        label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, color: "oklch(0.554 0.046 257.417)", formatter: (p) => "median " + fmtEGP(p.value) },
         data: [{ yAxis: medC }, { xAxis: medI }],
       } : undefined,
       markArea: pts.length > 2 ? {
         silent: true, animation: false,
         data: [
-          [ // top-right = Stars
-            { xAxis: medI, yAxis: medC, itemStyle: { color: "rgba(14,124,123,.06)" },
-              label: { show: true, position: "insideTopRight", distance: 8, fontFamily: "Archivo", fontWeight: 700, fontSize: 11, letterSpacing: 2, color: "rgba(14,124,123,.55)", formatter: "STARS · نجوم" } },
-            { xAxis: showLog ? maxI : maxI, yAxis: maxC } ],
-          [ // bottom-left = Watch
-            { xAxis: showLog ? 1 : 0, yAxis: 0, itemStyle: { color: "rgba(185,122,14,.05)" },
-              label: { show: true, position: "insideBottomLeft", distance: 8, fontFamily: "Archivo", fontWeight: 700, fontSize: 11, letterSpacing: 2, color: "rgba(185,122,14,.5)", formatter: "WATCH · راقب" } },
-            { xAxis: medI, yAxis: medC } ],
+          [
+            { xAxis: medI, yAxis: medC, itemStyle: { color: "color-mix(in oklab, var(--success) 6%, transparent)" },
+              label: { show: true, position: "insideTopRight", distance: 8, fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontWeight: 600, fontSize: 11, color: "color-mix(in oklab, var(--success) 70%, white)", formatter: "STARS · نجوم" } },
+            { xAxis: maxI, yAxis: maxC }],
+          [
+            { xAxis: showLog ? 1 : 0, yAxis: 0, itemStyle: { color: "color-mix(in oklab, var(--warning) 6%, transparent)" },
+              label: { show: true, position: "insideBottomLeft", distance: 8, fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontWeight: 600, fontSize: 11, color: "color-mix(in oklab, var(--warning) 60%, white)", formatter: "WATCH · راقب" } },
+            { xAxis: medI, yAxis: medC }],
         ],
       } : undefined,
     }],
   }, { notMerge: true });
 
-  document.getElementById("railTitle").textContent = `Agents · ${rows.length}` + (dropped ? ` (+${dropped} at 0)` : "");
+  document.getElementById("railSub").textContent =
+    `${rows.length} in view` + (dropped ? ` (+${dropped} at 0)` : "");
+  document.getElementById("chartTitle").textContent = `${SEG().impactKpi} × ${SEG().utilName}`;
 }
 
-/* ── rail (agent visibility list) ── */
+/* ── rail (agent visibility, SalesCharts list pattern) ── */
 function drawRail() {
   const q = document.getElementById("agentSearch").value.trim().toLowerCase();
   const list = document.getElementById("agentList");
   list.innerHTML = "";
-  const segTypes = SEG().types;
   const agents = DATA.agents
-    .filter((a) => segTypes.includes(a.agent_type))
+    .filter((a) => SEG().types.includes(a.agent_type))
     .filter((a) => !q || a.agent_name.toLowerCase().includes(q))
     .sort((x, y) => x.agent_name.localeCompare(y.agent_name));
   for (const a of agents) {
-    const g = govOf(a);
     const div = document.createElement("div");
     div.className = "ag" + (filters.hidden.has(a.agent_id) ? " off" : "");
-    const dotColor = C.gov[g] ?? "#5c6a83";
+    const c = avatarColor(a.agent_name);
     div.innerHTML = `<input type="checkbox" ${filters.hidden.has(a.agent_id) ? "" : "checked"} aria-label="Show ${a.agent_name}" />
-      <span class="dot" style="background:${dotColor}"></span>
+      <span class="avatar" style="background:${c}">${initials(a.agent_name)}</span>
       <span class="nm">${a.agent_name}</span>
-      <span class="gv">${g}</span>`;
+      <span class="gv">${govOf(a)}</span>`;
     div.querySelector("input").addEventListener("change", (e) => {
       if (e.target.checked) filters.hidden.delete(a.agent_id); else filters.hidden.add(a.agent_id);
       renderAll();
@@ -647,38 +819,47 @@ function drawRail() {
   }
 }
 
+/* delta pill (HeaderBanner DeltaPill pattern) */
+const deltaHTML = (v) => {
+  if (v == null) return `<span class="delta" style="color: var(--muted-foreground)">—</span>`;
+  const up = v >= 0;
+  const arrow = up
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>`;
+  return `<span class="delta ${up ? "up" : "down"}">${arrow}${up ? "+" : ""}${(v * 100).toFixed(0)}%</span>`;
+};
+
 /* ── table ── */
 function drawTable() {
   const rows = visibleAgents();
   const seg = SEG();
-  const monthMode = filters.range === "cur";
-  const impactHead = monthMode ? `${seg.impactName} · ${fmtMonth(filters.month)}` : seg.impactName;
-  const prevHead = monthMode ? fmtMonth(monthBefore(filters.month)) : "Previous month";
-  document.getElementById("tblHead").innerHTML =
-    `<th>#</th><th>Agent</th><th>Governorate</th>` +
-    `<th class="num">${impactHead}</th>` +
-    `<th class="num">${prevHead}</th><th class="num">Δ</th>` +
-    `<th class="num">${seg.ordersLbl}</th><th class="num">${seg.visitsLbl}</th>` +
-    `<th class="num">${seg.utilShort}</th><th class="num">${seg.utilShort} Δ MoM</th>`;
+  const head = document.getElementById("tblHead");
+  const monthLbl = filters.range === "all" ? "all time" : fmtMonth(filters.month);
+  head.innerHTML = `
+    <th>#</th><th>Agent</th><th>Governorate</th>
+    <th class="num">${seg.impactShort} (EGP) · ${monthLbl}</th>
+    <th class="num">Δ vs ${filters.range === "all" ? "—" : fmtMonth(monthBefore(filters.month))}</th>
+    <th class="num">${seg.ordersLbl}</th><th class="num">${seg.visitsLbl}</th>
+    <th class="num">${seg.utilShort}</th><th class="num">Δ taps</th>`;
   const tb = document.getElementById("tblBody");
   tb.innerHTML = "";
   rows.slice(0, 60).forEach((r, i) => {
     const tr = document.createElement("tr");
     tr.className = "agent-row";
     tr.tabIndex = 0;
-    const dImp = r.impactMoM == null ? "—" : (r.impactMoM >= 0 ? "▲ +" : "▼ ") + (r.impactMoM * 100).toFixed(0) + "%";
-    const dClk = r.clicksMoM == null ? "—" : (r.clicksMoM >= 0 ? "▲ +" : "▼ ") + (r.clicksMoM * 100).toFixed(0) + "%";
+    const dImp = r.impactMoM == null ? "—" : deltaHTML(r.impactMoM);
+    const dClk = r.clicksMoM == null ? "—" : deltaHTML(r.clicksMoM);
+    const c = avatarColor(r.a.agent_name);
     tr.innerHTML = `
       <td class="num">${i + 1}</td>
-      <td>${r.a.agent_name}</td>
+      <td><span class="avatar-sm" style="background:${c}">${initials(r.a.agent_name)}</span>${r.a.agent_name}</td>
       <td>${r.gov}</td>
       <td class="num">${fmtEGP(r.impact)}</td>
-      <td class="num">${r.lastImpact == null ? "—" : fmtEGP(r.lastImpact)}</td>
-      <td class="num ${r.impactMoM == null ? "" : r.impactMoM >= 0 ? "delta-up" : "delta-down"}">${dImp}</td>
+      <td class="num">${dImp}</td>
       <td class="num">${fmtInt(r.orders)}</td>
       <td class="num">${fmtInt(r.visits)}</td>
       <td class="num">${fmtInt(r.clicks)}</td>
-      <td class="num ${r.clicksMoM == null ? "" : r.clicksMoM >= 0 ? "delta-up" : "delta-down"}">${dClk}</td>`;
+      <td class="num">${dClk}</td>`;
     const open = () => openDrawer(r.a.agent_id);
     tr.addEventListener("click", open);
     tr.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); });
@@ -686,31 +867,42 @@ function drawTable() {
   });
 }
 
-/* ── KPIs ── */
+/* ── KPIs (KpiCards pattern) ── */
 function drawKpis() {
   const rows = visibleAgents();
   const seg = SEG();
   document.getElementById("kImpactLbl").textContent = seg.impactKpi;
-  document.getElementById("kImpactNote").textContent = seg.impactNote;
+  document.getElementById("kImpactNote").textContent = "EGP in range";
   document.getElementById("kOrdersLbl").textContent = seg.ordersLbl;
   document.getElementById("kClicksLbl").textContent = seg.utilKpi;
   document.getElementById("kClicksNote").textContent = seg.utilNote;
-  document.getElementById("kCorrNote").textContent = "Pearson r · " + seg.utilShort + " vs impact";
+  document.getElementById("kAgentsNote").textContent = `with ${seg.ordersLbl.toLowerCase()} in range`;
+  document.getElementById("kpiSectionTitle").textContent =
+    filters.range === "all" ? "All time · agents in view" : `${fmtMonth(filters.month)} · ${seg.label}`;
   document.getElementById("kImpact").textContent = fmtEGP(rows.reduce((s, r) => s + r.impact, 0));
   document.getElementById("kAgents").textContent = fmtInt(rows.length);
   document.getElementById("kOrders").textContent = fmtInt(rows.reduce((s, r) => s + r.orders, 0));
   document.getElementById("kClicks").textContent = fmtInt(rows.reduce((s, r) => s + r.clicks, 0));
   const r = pearson(rows.map((x) => [x.impact, x.clicks]));
   document.getElementById("kCorr").textContent = r == null ? "—" : (r >= 0 ? "+" : "") + r.toFixed(2);
-  document.getElementById("lastSync").textContent =
-    "last synced " + (DATA.synced_at ? fmtDate(DATA.synced_at) : "never") +
-    (DATA.clicks_synced_at ? " · " + seg.utilShort + " " + fmtDate(DATA.clicks_synced_at) : "");
-  const noClicks = !DATA.clicks_synced_at && rows.every((x) => x.clicks === 0);
-  const banner = document.getElementById("utilBanner");
-  banner.innerHTML = noClicks
-    ? `<b>Utilization not connected yet.</b> ${seg.pendingNote} <span class="ar">بيانات الاستخدام لم تُربط بعد.</span>`
-    : "";
-  banner.style.display = noClicks ? "block" : "none";
+  const badge = document.getElementById("kCorrBadge");
+  badge.textContent = r == null ? "—" : (r >= 0 ? "▲ " : "▼ ") + Math.abs(r).toFixed(2);
+  const good = r != null && r >= 0.4;
+  badge.style.background = `color-mix(in oklab, ${good ? "var(--success)" : "var(--warning)"} 12%, white)`;
+  badge.style.color = good ? "var(--success)" : "var(--warning)";
+}
+
+function drawSyncLine() {
+  const el = document.getElementById("syncLine");
+  const seg = SEG();
+  el.innerHTML = `<b>Data pulse:</b> impact synced <b>${DATA.synced_at ? fmtDate(DATA.synced_at) : "never"}</b>` +
+    ` · utilization synced <b>${DATA.clicks_synced_at ? fmtDate(DATA.clicks_synced_at) : "not yet"}</b>` +
+    ` · ${seg.utilNote}.`;
+  document.getElementById("statusText").textContent = DATA.synced_at ? "Live" : "No data";
+  const badge = document.getElementById("statusBadge");
+  badge.style.background = DATA.synced_at
+    ? "color-mix(in oklab, var(--success) 85%, white)"
+    : "color-mix(in oklab, var(--danger) 85%, white)";
 }
 
 /* ── drawer ── */
@@ -720,62 +912,60 @@ function openDrawer(agentId) {
   if (!row) return;
   currentDrawerId = agentId;
   const a = row.a, seg = SEG();
+  const av = document.getElementById("dAvatar");
+  av.textContent = initials(a.agent_name);
+  av.style.background = avatarColor(a.agent_name);
   document.getElementById("dName").textContent = a.agent_name;
-  document.getElementById("dImpactLbl").textContent = seg.impactShort;
+  document.getElementById("dMeta").innerHTML = `
+    <span class="dtag">${row.gov}</span>
+    <span class="dtag">${a.agent_type ?? "agent"}</span>
+    <span class="dtag">active ${(a.first_active ?? "?").slice(0, 10)} → ${(a.last_active ?? "?").slice(0, 10)}</span>
+    ${filters.hidden.has(agentId) ? '<span class="dtag" style="background:rgb(255 255 255 / 0.35)">hidden from scope</span>' : ""}`;
+  document.getElementById("dImpactLbl").textContent = seg.impactKpi.replace("Total ", "");
   document.getElementById("dOrdersLbl").textContent = seg.ordersLbl;
   document.getElementById("dVisitsLbl").textContent = seg.visitsLbl;
   document.getElementById("dClicksLbl").textContent = seg.utilShort;
-  document.getElementById("dClicksSec").innerHTML = seg.utilSec;
-  document.getElementById("dMeta").innerHTML = `
-    <span class="tag solid">${row.gov}</span>
-    <span class="tag">${a.agent_type ?? "agent"}</span>
-    <span class="tag">active ${(a.first_active ?? "?").slice(0, 10)} → ${(a.last_active ?? "?").slice(0, 10)}</span>
-    ${filters.hidden.has(agentId) ? '<span class="tag" style="border-color:var(--amber);color:var(--amber)">hidden from scope</span>' : ""}`;
   document.getElementById("dImpact").textContent = fmtEGP(row.impact);
   document.getElementById("dOrders").textContent = fmtInt(row.orders);
   document.getElementById("dVisits").textContent = fmtInt(row.visits);
   document.getElementById("dClicks").textContent = fmtInt(row.clicks);
 
-  // PM verdict line
   const v = document.getElementById("dVerdict");
-  if (row.impactMoM == null) v.innerHTML = `Not enough history in this range for a month-over-month read.`;
+  if (row.impactMoM == null) v.innerHTML = `Not enough history for a month-over-month read.`;
   else {
     const di = row.impactMoM, dc = row.clicksMoM;
     const arrow = (x) => (x >= 0 ? "▲ +" : "▼ ") + (x * 100).toFixed(0) + "%";
-    v.innerHTML = `Latest month vs previous: impact <b>${arrow(di)}</b>, ${seg.utilShort} usage <b>${arrow(dc)}</b>. ` +
+    v.innerHTML = `Latest month vs previous: ${seg.impactShort.toLowerCase()} <b>${arrow(di)}</b>, commission-screen usage <b>${arrow(dc)}</b>. ` +
       (di >= 0 && dc >= 0 ? "Value and usage are improving together." :
        di >= 0 && dc < 0 ? "Value is up while usage slipped — worth a check-in." :
        di < 0 && dc >= 0 ? "Usage is up but value dipped — coaching opportunity." :
        "Both value and usage are down — needs attention.");
   }
 
-  // monthly charts
   const labels = row.months.map((m) => monthKey(m.month));
   const imp = row.months.map((m) => Math.round(Number(m.impact)));
   const clk = row.months.map((m) => Number(m.clicks));
-  const axis = {
-    axisLabel: { fontFamily: "IBM Plex Mono", fontSize: 10, color: C.ink60 },
-    splitLine: { lineStyle: { color: "rgba(22,35,59,.07)" } },
-  };
+  const grid = { left: 54, right: 16, top: 24, bottom: 26 };
+  const catAxis = { type: "category", data: labels, axisLabel: { ...axisFont, fontSize: 11 }, axisLine: { lineStyle: { color: "var(--border)" } }, axisTick: { show: false } };
   dChartI.setOption({
-    animation: !reducedMotion, grid: { left: 58, right: 18, top: 26, bottom: 28 },
-    tooltip: { trigger: "axis", valueFormatter: (v) => fmtEGP(v) + " EGP" },
-    xAxis: { type: "category", data: labels, ...axis },
-    yAxis: { type: "value", ...axis, axisLabel: { ...axis.axisLabel, formatter: fmtEGP } },
+    animation: !reducedMotion, grid,
+    tooltip: { trigger: "axis", backgroundColor: "var(--card)", borderColor: "var(--border)", borderRadius: 12, textStyle: { fontSize: 12, color: "var(--foreground)" }, valueFormatter: (val) => fmtEGP(val) + " EGP" },
+    xAxis: catAxis,
+    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtEGP }, splitLine: { lineStyle: { color: "var(--border)" } } },
     series: [{
-      type: "bar", data: imp, barMaxWidth: 34, itemStyle: { color: C.nile, borderRadius: [3, 3, 0, 0] },
-      label: { show: labels.length <= 14, position: "top", fontFamily: "IBM Plex Mono", fontSize: 10, color: C.ink60, formatter: (p) => fmtEGP(p.value) },
+      type: "bar", data: imp, barMaxWidth: 30,
+      itemStyle: { color: "var(--kpi-orders)", borderRadius: [4, 4, 0, 0] },
+      label: { show: labels.length <= 14, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "oklch(0.554 0.046 257.417)", formatter: (p) => fmtEGP(p.value) },
     }],
   }, { notMerge: true });
   dChartC.setOption({
-    animation: !reducedMotion, grid: { left: 44, right: 18, top: 26, bottom: 28 },
-    tooltip: { trigger: "axis", valueFormatter: (v) => fmtInt(v) + " " + SEG().utilShort },
-    xAxis: { type: "category", data: labels, ...axis },
-    yAxis: { type: "value", ...axis, axisLabel: { ...axis.axisLabel, formatter: fmtInt }, minInterval: 1 },
+    animation: !reducedMotion, grid: { ...grid, left: 40 },
+    tooltip: { trigger: "axis", backgroundColor: "var(--card)", borderColor: "var(--border)", borderRadius: 12, textStyle: { fontSize: 12, color: "var(--foreground)" }, valueFormatter: (val) => fmtInt(val) + " taps" },
+    xAxis: catAxis,
+    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtInt }, splitLine: { lineStyle: { color: "var(--border)" } }, minInterval: 1 },
     series: [{
-      type: "line", data: clk, smooth: false, symbol: "circle", symbolSize: 8,
-      lineStyle: { color: C.amber, width: 2.5 }, itemStyle: { color: C.amber },
-      areaStyle: { color: "rgba(185,122,14,.08)" },
+      type: "line", data: clk, smooth: false, symbol: "circle", symbolSize: 7,
+      lineStyle: { color: "var(--kpi-visits)", width: 3 }, itemStyle: { color: "var(--kpi-visits)" },
     }],
   }, { notMerge: true });
 
@@ -800,52 +990,43 @@ function closeDrawer() {
 }
 
 /* ── controls wiring ── */
-function buildGovChips() {
-  const wrap = document.getElementById("govChips");
-  wrap.innerHTML = "";
-  const all = document.createElement("button");
-  all.className = "chip"; all.setAttribute("aria-pressed", String(filters.govs.size === 0));
-  all.innerHTML = `All governorates`;
-  all.addEventListener("click", () => { filters.govs.clear(); renderAll(); });
-  wrap.appendChild(all);
-  const govs = new Set(
-    DATA.agents.filter((a) => SEG().types.includes(a.agent_type)).map((a) => govOf(a))
-  );
-  for (const g of ["Cairo", "Giza", "Alexandria", "Beheira", ...[...govs].filter((x) => !["Cairo","Giza","Alexandria","Beheira"].includes(x))]) {
-    if (!govs.has(g)) continue;
-    const b = document.createElement("button");
-    b.className = "chip"; b.style.setProperty("--c", C.gov[g] ?? "#5c6a83");
-    b.setAttribute("aria-pressed", String(filters.govs.has(g)));
-    b.innerHTML = `<span class="dot"></span>${g} ${GOV_EN_AR[g] ? `· <span class="ar">${GOV_EN_AR[g]}</span>` : ""}`;
-    b.addEventListener("click", () => {
-      filters.govs.has(g) ? filters.govs.delete(g) : filters.govs.add(g);
-      renderAll();
-    });
-    wrap.appendChild(b);
-  }
+function buildGovSelect() {
+  const sel = document.getElementById("govSelect");
+  const current = filters.gov;
+  const govs = new Set(DATA.agents.filter((a) => SEG().types.includes(a.agent_type)).map((a) => govOf(a)));
+  sel.innerHTML = `<option value="">All governorates</option>` +
+    [...govs].sort().map((g) => `<option value="${g}">${g}</option>`).join("");
+  if (current && govs.has(current)) sel.value = current; else { sel.value = ""; filters.gov = ""; }
 }
-const GOV_EN_AR = { "Cairo": "القاهرة", "Giza": "الجيزة", "Alexandria": "الإسكندرية", "Beheira": "البحيرة" };
-
+function buildMonthSelect() {
+  const sel = document.getElementById("monthSelect");
+  const months = new Set();
+  for (const a of DATA.agents) for (const m of a.monthly ?? []) months.add(monthKey(m.month));
+  const sorted = [...months].sort().reverse();
+  sel.innerHTML = sorted.map((m) => `<option value="${m}">${fmtMonth(m)}</option>`).join("");
+  if (!sorted.includes(filters.month)) filters.month = sorted[0] ?? filters.month;
+  sel.value = filters.month;
+}
 function renderAll() {
-  drawKpis(); drawScatter(); drawRail(); drawTable(); buildGovChips();
-  document.getElementById("monthPick").value = filters.month;
+  if (!DATA.agents.length) return;
+  drawKpis(); drawSyncLine(); drawScatter(); drawRail(); drawTable();
+  buildGovSelect(); buildMonthSelect();
+  document.querySelectorAll("#segSeg button").forEach((b) =>
+    b.setAttribute("aria-pressed", String(b.dataset.s === filters.segment)));
   document.getElementById("allTimeBtn").setAttribute("aria-pressed", String(filters.range === "all"));
+  document.getElementById("monthWrap").style.display = filters.range === "all" ? "none" : "";
   if (currentDrawerId) openDrawer(currentDrawerId);
 }
 
 function wire() {
   document.getElementById("segSeg").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    if (filters.segment === b.dataset.s) return;
     filters.segment = b.dataset.s;
-    filters.hidden.clear();          // hidden sets don't transfer across segments
+    filters.gov = ""; // gov set differs per segment
     renderAll();
   });
-  document.getElementById("monthPick").addEventListener("change", (e) => {
-    filters.month = e.target.value || filters.month;
-    filters.range = "cur";           // picking a month leaves all-time mode
-    renderAll();
-  });
+  document.getElementById("govSelect").addEventListener("change", (e) => { filters.gov = e.target.value; renderAll(); });
+  document.getElementById("monthSelect").addEventListener("change", (e) => { filters.month = e.target.value; filters.range = "cur"; renderAll(); });
   document.getElementById("allTimeBtn").addEventListener("click", () => {
     filters.range = filters.range === "all" ? "cur" : "all";
     renderAll();
@@ -873,8 +1054,8 @@ async function syncNow() {
     if (!res.ok || !out.ok) throw new Error(out.error || "sync failed");
     await load();
     renderAll();
-    toast(out.mixpanel?.ok ? "Synced — impact and utilization taps refreshed" :
-      "Impact synced from the OLAP" + (out.mixpanel?.detail ? ` (taps: ${out.mixpanel.detail})` : ""));
+    toast(out.mixpanel?.ok ? "Synced — impact and utilization refreshed" :
+      "Impact synced" + (out.mixpanel?.detail ? ` (taps: ${out.mixpanel.detail})` : ""));
   } catch (err) {
     toast("Sync failed: " + err.message);
   } finally {
@@ -884,6 +1065,7 @@ async function syncNow() {
 
 /* ── boot ── */
 (async function boot() {
+  document.getElementById("datePill").textContent = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   chart = echarts.init(document.getElementById("chart"));
   dChartI = echarts.init(document.getElementById("dImpactChart"));
   dChartC = echarts.init(document.getElementById("dClicksChart"));
@@ -892,7 +1074,7 @@ async function syncNow() {
     await load();
     renderAll();
   } catch (err) {
-    document.getElementById("lastSync").textContent = "could not load data";
+    document.getElementById("syncLine").innerHTML = "<b>Data pulse:</b> could not reach the insights service.";
     toast("Could not reach the insights service: " + err.message);
   }
 })();
