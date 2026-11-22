@@ -735,6 +735,7 @@
       <div class="dkpi"><div class="l" id="dVisitsLbl">Visits</div><div class="v" id="dVisits">—</div></div>
       <div class="dkpi"><div class="l" id="dClicksLbl">Clicks</div><div class="v" id="dClicks">—</div></div>
     </div>
+    <div class="verdict" id="dUnlock" style="display:none"></div>
     <div class="verdict" id="dVerdict"></div>
     <div class="dsec" id="dImpactSec">Monthly value <span class="sub">EGP per month</span></div>
     <div class="dchart" id="dImpactChart"></div>
@@ -862,11 +863,13 @@ function visibleAgents() {
     if (!ms.length) continue;
     const sum = (k) => ms.reduce((t, m) => t + Number(m[k] || 0), 0);
     const impact = sum("impact"), orders = sum("orders"), visits = sum("visits"), clicks = sum("clicks");
+    const assigned = sum("assigned"), delivered = sum("delivered");
+    const hasFul = assigned + delivered > 0;
     const sorted = [...(a.monthly ?? [])].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1);
     const lastInRange = [...ms].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1).at(-1);
     const prev = lastInRange ? sorted.find((m) => monthKey(m.month) === monthBefore(lastInRange.month)) : null;
     rows.push({
-      a, months: sorted, impact, orders, visits, clicks,
+      a, months: sorted, impact, orders, visits, clicks, assigned, delivered, hasFul,
       gov: govOf(a),
       impactMoM: lastInRange && prev ? (Number(lastInRange.impact) - Number(prev.impact)) / Math.max(Number(prev.impact), 1) : null,
       clicksMoM: lastInRange && prev ? (Number(lastInRange.clicks) - Number(prev.clicks)) / Math.max(Number(prev.clicks), 1) : null,
@@ -1113,13 +1116,32 @@ function openDrawer(agentId) {
     <span class="dtag">active ${(a.first_active ?? "?").slice(0, 10)} → ${(a.last_active ?? "?").slice(0, 10)}</span>
     ${filters.hidden.has(agentId) ? '<span class="dtag" style="background:rgb(255 255 255 / 0.35)">hidden from scope</span>' : ""}`;
   document.getElementById("dImpactLbl").textContent = seg.impactKpi.replace("Total ", "");
-  document.getElementById("dOrdersLbl").textContent = seg.ordersLbl;
-  document.getElementById("dVisitsLbl").textContent = seg.visitsLbl;
+  const ful = row.hasFul; // fulfillment quantities replace orders/visits slots
+  document.getElementById("dOrdersLbl").textContent = ful ? "Assigned (qty)" : seg.ordersLbl;
+  document.getElementById("dVisitsLbl").textContent = ful ? "Fulfilled (qty)" : seg.visitsLbl;
   document.getElementById("dClicksLbl").textContent = seg.utilShort;
   document.getElementById("dImpact").textContent = fmtEGP(row.impact);
-  document.getElementById("dOrders").textContent = fmtInt(row.orders);
-  document.getElementById("dVisits").textContent = fmtInt(row.visits);
+  document.getElementById("dOrders").textContent = fmtInt(ful ? row.assigned : row.orders);
+  document.getElementById("dVisits").textContent = fmtInt(ful ? row.delivered : row.visits);
   document.getElementById("dClicks").textContent = fmtInt(row.clicks);
+
+  // unlock days (from the app's own unlocked flags)
+  const u = UNLOCK_DAYS[a.agent_id];
+  const uEl = document.getElementById("dUnlock");
+  if (u) {
+    const parts = [];
+    if (u.sep) parts.push(`Sep ${u.sep}`);
+    if (u.oct) parts.push(`Oct ${u.oct}`);
+    if (u.nov) parts.push(`Nov ${u.nov}`);
+    if (!parts.length && u.carry) parts.push("Oct month-end (carried to Nov 1)");
+    const rate = parts.length
+      ? `Unlocked: <b>${parts.join(" · ")}</b> — the day their progress card crossed 70%.`
+      : `Commission unlocked at October's end (carried into Nov 1) — no exact day captured.`;
+    uEl.style.display = "block";
+    uEl.innerHTML = `🔓 ${rate}`;
+  } else {
+    uEl.style.display = "none";
+  }
 
   const v = document.getElementById("dVerdict");
   if (row.impactMoM == null) v.innerHTML = `Not enough history for a month-over-month read.`;
@@ -1170,7 +1192,9 @@ function fullRowFor(agentId) {
   const ms = [...(a.monthly ?? [])].sort((x, y) => monthKey(x.month) < monthKey(y.month) ? -1 : 1);
   const sum = (k) => ms.reduce((t, m) => t + Number(m[k] || 0), 0);
   const last = ms.at(-1), prev = ms.at(-2);
+  const assigned = sum("assigned"), delivered = sum("delivered");
   return { a, months: ms, gov: govOf(a), impact: sum("impact"), orders: sum("orders"), visits: sum("visits"), clicks: sum("clicks"),
+    assigned, delivered, hasFul: assigned + delivered > 0,
     impactMoM: prev ? (Number(last.impact) - Number(prev.impact)) / Math.max(Number(prev.impact), 1) : null,
     clicksMoM: prev ? (Number(last.clicks) - Number(prev.clicks)) / Math.max(Number(prev.clicks), 1) : null };
 }
