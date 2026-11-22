@@ -1392,6 +1392,9 @@ function renderReport() {
   document.getElementById("repStamp").textContent = `updated ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}, with data through 22 November`;
 
   // ════════ SECTION 1 — daily tracking, one line per channel ════════
+  const dayLabels = [];
+  const mk = (m, days) => { for (let i = 1; i <= days; i++) dayLabels.push(`${m} ${i}`); };
+  mk("Sep", 30); mk("Oct", 31); mk("Nov", 22);
   const daily = repChart("repDaily");
   daily.setOption({
     animation: !reducedMotion,
