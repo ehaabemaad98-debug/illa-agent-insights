@@ -1449,8 +1449,15 @@ function showView(which) {
   document.getElementById("reportView").classList.toggle("hidden-view", dash);
   document.getElementById("navDash").setAttribute("aria-pressed", String(dash));
   document.getElementById("navReport").setAttribute("aria-pressed", String(!dash));
-  if (!dash) { renderReport(); repCharts.forEach((c) => c.resize()); }
-  else { chart?.resize(); }
+  if (!dash) {
+    renderReport();
+    // charts init against a container that just left display:none — re-measure
+    // after layout settles so they pick up real width/height
+    requestAnimationFrame(() => repCharts.forEach((c) => c.resize()));
+    setTimeout(() => repCharts.forEach((c) => c.resize()), 120);
+  } else {
+    chart?.resize();
+  }
 }
 
 
