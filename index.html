@@ -422,7 +422,7 @@
   .mv td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   .rep-chart { height: 300px; margin-top: 14px; }
-  #repTimeline, #repCohorts, #repPaceChart, #repViews { width: 100%; height: 100%; }
+  #repTimeline, #repCohorts, #repPaceChart, #repViews, #repDaily, #repEngage { width: 100%; height: 100%; }
   .wf { margin-top: 18px; }
   .wf-row { display: grid; grid-template-columns: 210px 1fr 110px; align-items: center; gap: 12px; height: 40px; }
   .wf-row .lbl { font-size: 13px; color: var(--foreground); text-align: right; }
@@ -1354,6 +1354,8 @@ const FUL_AGENTS = [0,0,0,0,0,0,0,0,1,0,11,6,0,6,1,3,3,3,4,0,0,0];
 function renderReport() {
   const li = (t) => `<li>${t}</li>`;
   const everUnlocked = Object.keys(UNLOCK_DAYS).length;
+  const unlockers = continuing.filter((r) => r.cohort !== "never");
+  const never = continuing.filter((r) => r.cohort === "never");
   const all = fieldAgents();
   const continuing = all
     .map((a) => ({
