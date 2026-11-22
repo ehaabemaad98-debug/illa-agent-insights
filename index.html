@@ -728,12 +728,12 @@ function drawScatter() {
     },
     tooltip: {
       confine: true,
-      backgroundColor: "var(--card)",
-      borderColor: "var(--border)",
+      backgroundColor: "oklch(1 0 0)",
+      borderColor: "oklch(0.929 0.013 255.508)",
       borderWidth: 1,
       borderRadius: 12,
       padding: 10,
-      textStyle: { color: "var(--foreground)", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12 },
+      textStyle: { color: "oklch(0.129 0.042 264.695)", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12 },
       extraCssText: "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);",
       formatter: (p) => {
         const r = p.data.raw, seg = SEG();
@@ -748,7 +748,7 @@ function drawScatter() {
       nameGap: 28, min: showLog ? 1 : 0, max: showLog ? undefined : Math.ceil(maxI * 1.06),
       nameTextStyle: { ...axisFont },
       axisLabel: { ...axisFont, formatter: (v) => fmtEGP(v) },
-      axisLine: { lineStyle: { color: "var(--border)" } },
+      axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } },
       axisTick: { show: false },
       splitLine: { show: false },
     },
@@ -774,12 +774,12 @@ function drawScatter() {
         silent: true, animation: false,
         data: [
           [
-            { xAxis: medI, yAxis: medC, itemStyle: { color: "color-mix(in oklab, var(--success) 6%, transparent)" },
-              label: { show: true, position: "insideTopRight", distance: 8, fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontWeight: 600, fontSize: 11, color: "color-mix(in oklab, var(--success) 70%, white)", formatter: "STARS · نجوم" } },
+            { xAxis: medI, yAxis: medC, itemStyle: { color: "rgba(26, 158, 110, 0.06)" },
+              label: { show: true, position: "insideTopRight", distance: 8, fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontWeight: 600, fontSize: 11, color: "rgba(26, 158, 110, 0.85)", formatter: "STARS · نجوم" } },
             { xAxis: maxI, yAxis: maxC }],
           [
-            { xAxis: showLog ? 1 : 0, yAxis: 0, itemStyle: { color: "color-mix(in oklab, var(--warning) 6%, transparent)" },
-              label: { show: true, position: "insideBottomLeft", distance: 8, fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontWeight: 600, fontSize: 11, color: "color-mix(in oklab, var(--warning) 60%, white)", formatter: "WATCH · راقب" } },
+            { xAxis: showLog ? 1 : 0, yAxis: 0, itemStyle: { color: "rgba(217, 154, 43, 0.07)" },
+              label: { show: true, position: "insideBottomLeft", distance: 8, fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontWeight: 600, fontSize: 11, color: "rgba(180, 130, 30, 0.9)", formatter: "WATCH · راقب" } },
             { xAxis: medI, yAxis: medC }],
         ],
       } : undefined,
@@ -946,26 +946,26 @@ function openDrawer(agentId) {
   const imp = row.months.map((m) => Math.round(Number(m.impact)));
   const clk = row.months.map((m) => Number(m.clicks));
   const grid = { left: 54, right: 16, top: 24, bottom: 26 };
-  const catAxis = { type: "category", data: labels, axisLabel: { ...axisFont, fontSize: 11 }, axisLine: { lineStyle: { color: "var(--border)" } }, axisTick: { show: false } };
+  const catAxis = { type: "category", data: labels, axisLabel: { ...axisFont, fontSize: 11 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } };
   dChartI.setOption({
     animation: !reducedMotion, grid,
-    tooltip: { trigger: "axis", backgroundColor: "var(--card)", borderColor: "var(--border)", borderRadius: 12, textStyle: { fontSize: 12, color: "var(--foreground)" }, valueFormatter: (val) => fmtEGP(val) + " EGP" },
+    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (val) => fmtEGP(val) + " EGP" },
     xAxis: catAxis,
-    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtEGP }, splitLine: { lineStyle: { color: "var(--border)" } } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
     series: [{
       type: "bar", data: imp, barMaxWidth: 30,
-      itemStyle: { color: "var(--kpi-orders)", borderRadius: [4, 4, 0, 0] },
+      itemStyle: { color: "oklch(0.55 0.09 210)", borderRadius: [4, 4, 0, 0] },
       label: { show: labels.length <= 14, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "oklch(0.554 0.046 257.417)", formatter: (p) => fmtEGP(p.value) },
     }],
   }, { notMerge: true });
   dChartC.setOption({
     animation: !reducedMotion, grid: { ...grid, left: 40 },
-    tooltip: { trigger: "axis", backgroundColor: "var(--card)", borderColor: "var(--border)", borderRadius: 12, textStyle: { fontSize: 12, color: "var(--foreground)" }, valueFormatter: (val) => fmtInt(val) + " taps" },
+    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (val) => fmtInt(val) + " taps" },
     xAxis: catAxis,
-    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtInt }, splitLine: { lineStyle: { color: "var(--border)" } }, minInterval: 1 },
+    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, minInterval: 1 },
     series: [{
       type: "line", data: clk, smooth: false, symbol: "circle", symbolSize: 7,
-      lineStyle: { color: "var(--kpi-visits)", width: 3 }, itemStyle: { color: "var(--kpi-visits)" },
+      lineStyle: { color: "oklch(0.62 0.18 295)", width: 3 }, itemStyle: { color: "oklch(0.62 0.18 295)" },
     }],
   }, { notMerge: true });
 
