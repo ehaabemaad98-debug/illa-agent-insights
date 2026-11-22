@@ -407,6 +407,11 @@
   .rep-kpi .d { font-size: 12px; font-weight: 600; margin-top: 2px; }
   .rep-kpi .d.up { color: var(--success); }
   .rep-kpi .d.down { color: var(--danger); }
+
+  #repScorecard { grid-template-columns: repeat(5, 1fr); }
+  .rep-kpi .status-pill { display: inline-flex; align-items: center; border-radius: 9999px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-top: 8px; }
+  @media (max-width: 1080px) { #repScorecard { grid-template-columns: repeat(3, 1fr); } }
+
   .rep-chart { height: 300px; margin-top: 14px; }
   #repTimeline, #repCohorts, #repPaceChart, #repViews { width: 100%; height: 100%; }
   .wf { margin-top: 18px; }
@@ -627,55 +632,33 @@
       <span class="r" id="repStamp">updated …</span>
     </div>
 
-    <h1 class="rep-headline" id="repHeadline">…</h1>
+        <h1 class="rep-headline" id="repHeadline">…</h1>
     <p class="rep-lede" id="repLede">…</p>
+
+    <div class="rep-kpis" id="repScorecard"></div>
+    <p class="rep-note">OKR scorecard — the card was built to <b>motivate faster target-hitting</b>, so the leading results are behavioral (adoption, speed, engagement, month-end push). Scored as trends against the Sep 20 launch baseline: no hard targets this quarter. ▲ improving · ▼ worsening · ● attribution open.</p>
 
     <div class="rep-chart"><div id="repPaceChart"></div></div>
     <p class="rep-note" id="paceNote">Daily unlock events — the moment an agent's progress card showed ≥70% of target. The Sep 20 burst is launch day; the month-end clusters are agents crossing the threshold late. Nov 1 is October's unlocked state carried into the new month.</p>
 
-    <div class="rep-kpis">
-      <div class="rep-kpi"><div class="l">Revenue / agent / month — after</div><div class="v" id="rkAfter">—</div><div class="d" id="rkAfterDelta">—</div><div class="d" style="color:var(--muted-foreground);font-weight:400" id="rkAfterSub">—</div></div>
-      <div class="rep-kpi"><div class="l">Unlock rate (Oct)</div><div class="v" id="rkRate">—</div><div class="d" id="rkRateSub">—</div></div>
-      <div class="rep-kpi"><div class="l">Median first-unlock day</div><div class="v" id="rkUnlockDay">—</div><div class="d" id="rkUnlockDaySub">—</div></div>
-      <div class="rep-kpi"><div class="l">Progress-card views</div><div class="v" id="rkTaps">—</div><div class="d" id="rkTapsSub">—</div></div>
-    </div>
-
-    <div class="rep-hh">
-      <div><h3>What helped</h3><ul id="hhHelped"></ul></div>
-      <div><h3>What hurt</h3><ul id="hhHurt"></ul></div>
-      <div><h3>Keep an eye on</h3><ul id="hhWatch"></ul></div>
-    </div>
-
-    <div class="rep-60s">
-      <h3>The 60-second version</h3>
-      <p id="rep60"></p>
+    <div class="rep-section">
+      <h2>The fair test: are agents pushing harder at month-end?</h2>
+      <p class="lede" id="pushLede">…</p>
+      <div class="rep-chart"><div id="repPush"></div></div>
+      <p class="rep-note">Share of monthly revenue earned on days 16–22, as a % of all revenue on days 1–22 — the same calendar week in every month, so partial November stays comparable. Only September onward could the card influence anything; Jul–Aug is the natural baseline.</p>
     </div>
 
     <div class="rep-section">
-      <h2>Where did the move come from?</h2>
-      <p class="lede" id="moveLede">…</p>
+      <h2>Can we claim the revenue lift? Not yet — and here is why.</h2>
+      <p class="lede" id="claimLede">…</p>
+      <p class="lede" id="claimLede2">…</p>
     </div>
 
     <div class="rep-section">
-      <h2>How does this compare with earlier months?</h2>
-      <p class="lede" id="tlLede">…</p>
-      <div class="rep-chart"><div id="repTimeline"></div></div>
-      <p class="rep-note" id="tlNote">…</p>
-      <p class="lede" id="launchNote" style="margin-top:14px">…</p>
-    </div>
-
-    <div class="rep-section">
-      <h2>Did the unlock mechanic move revenue?</h2>
-      <p class="lede" id="wfLede">…</p>
-      <div class="wf" id="wfRows"></div>
-      <p class="rep-note">Average monthly revenue per continuing agent (had revenue both before Jul–Aug and after Sep–Nov). Deltas are weighted by each cohort's share of the group.</p>
-    </div>
-
-    <div class="rep-section">
-      <h2>Does unlocking earlier mean selling more?</h2>
-      <p class="lede">Three cohorts, same measure — average monthly revenue before the feature vs after. Cohorts are set by each agent's first October unlock day (the fullest month of unlock data).</p>
+      <h2>Who did the feature reach? (signal — not proof)</h2>
+      <p class="lede" id="reachLede">…</p>
       <div class="rep-chart"><div id="repCohorts"></div></div>
-      <p class="rep-note">Cohort sizes shown on the axis. "Never unlocked" includes agents who only fired carried-over unlock flags on Nov 1 (October's state) — they never crossed 70% while it counted.</p>
+      <p class="rep-note">Cohorts by first October unlock day. Read this as reach and fairness — not cause: crossing 70% requires selling, so unlockers were stronger sellers by construction. The honest cut is the month-end push share above, which measures behaviour in the same weeks before and after.</p>
     </div>
 
     <div class="rep-section">
@@ -697,17 +680,16 @@
     </div>
 
     <div class="rep-section">
-      <h2>Which agents moved most?</h2>
-      <p class="lede" id="movLede">…</p>
-      <div class="rep-movers" id="repMovers"></div>
-    </div>
-
-    <div class="rep-section">
-      <h2>What could we do next?</h2>
+      <h2>What to do next</h2>
       <p class="lede" id="recoLede">…</p>
       <div id="recoList"></div>
       <p class="rep-note" id="recoAlso"></p>
       <p class="rep-note">The figures overlap (an agent can be both a never-unlocker and a November decliner), so don't add them up.</p>
+    </div>
+
+    <div class="rep-section">
+      <h2>How these numbers are counted</h2>
+      <p class="lede" id="repMethod">…</p>
     </div>
 
     <div class="rep-section">
@@ -1369,61 +1351,48 @@ function renderReport() {
   const beforeAvg = avg(continuing.map((r) => r.before / r.mb));
   const afterAvg = avg(continuing.map((r) => r.after / r.ma));
   const uplift = beforeAvg > 0 ? (afterAvg - beforeAvg) / beforeAvg : null;
+  const upPct = uplift == null ? "—" : (uplift >= 0 ? "+" : "") + Math.round(uplift * 100) + "%";
 
   const unlockers = continuing.filter((r) => r.cohort !== "never");
   const never = continuing.filter((r) => r.cohort === "never");
-  const uBefore = avg(unlockers.map((r) => r.before / r.mb));
   const uAfter = avg(unlockers.map((r) => r.after / r.ma));
-  const nBefore = avg(never.map((r) => r.before / r.mb));
   const nAfter = avg(never.map((r) => r.after / r.ma));
-  const uDelta = uAfter - uBefore, nDelta = nAfter - nBefore;
-  const shareU = continuing.length ? unlockers.length / continuing.length : 0;
-  const shareN = 1 - shareU;
-
+  const uDelta = uAfter - avg(unlockers.map((r) => r.before / r.mb));
   const everUnlocked = Object.keys(UNLOCK_DAYS).length;
-  const fmtM = (v) => (v / 1e6).toFixed(2) + "M";
-  const upPct = uplift == null ? "—" : (uplift >= 0 ? "+" : "") + Math.round(uplift * 100) + "%";
+  const octUnlockCount = continuing.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct != null).length;
+  const octActiveCount = continuing.filter((r) => monthActive(r.a, ["2026-10"]) > 0).length;
 
-  // ── headline + lede
+  // ── headline: goal-first, honest attribution
   document.getElementById("repHeadline").textContent =
-    uplift != null && uplift >= 0
-      ? `Agents who kept selling through the unlock launch are averaging ${upPct} more per month`
-      : `Revenue per agent is running ${upPct} since the unlock feature launched`;
+    `The unlock card changed when agents push — the revenue verdict waits for December`;
   document.getElementById("repLede").innerHTML =
-    `The commission progress card shipped to the Presell app on <b>${REP.releaseDay}</b> — agents watch one number cross <b>70% of target</b> to unlock their commission. ` +
-    `Across the <b>${continuing.length} agents</b> who sold both before and after, monthly revenue moved from <b>${fmtEGP(beforeAvg)}</b> to <b>${fmtEGP(afterAvg)}</b> per agent (${upPct}). ` +
-    `<b>${everUnlocked} agents have unlocked at least once</b> and their monthly revenue moved ${uDelta >= 0 ? "+" : ""}${fmtEGP(uDelta)} on average, ` +
-    `while the ${never.length} who never unlocked moved ${nDelta >= 0 ? "+" : ""}${fmtEGP(nDelta)}.`;
+    `The progress card shipped on <b>Sep 20</b> with one goal: <b>motivate agents to hit 70% of target faster</b>. Two months in, the behaviour it targets has moved — the share of revenue earned in the month-end push window climbed from <b>21.6%</b> (Aug, pre-launch) to <b>31.8%</b> (November), improving every month since launch. ` +
+    `Adoption reached <b>half of active agents</b> in October (${octUnlockCount} of ${octActiveCount} unlocked). Revenue direction is positive (<b>${fmtEGP(beforeAvg)} → ${fmtEGP(afterAvg)}</b> per agent, ${upPct}) — but <b>October is always our strongest month</b>, so revenue attribution stays open until December.`;
 
-  // ── stamp + KPI row with deltas and sub-notes
   document.getElementById("repStamp").textContent = `updated ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}, with data through 22 November`;
-  document.getElementById("rkAfter").textContent = fmtEGP(afterAvg);
-  const d = document.getElementById("rkAfterDelta");
-  d.textContent = uplift == null ? "—" : `${uplift >= 0 ? "+" : ""}${fmtEGP(afterAvg - beforeAvg)} (${upPct}) vs Jul–Aug`;
-  d.className = "d " + (uplift != null && uplift >= 0 ? "up" : "down");
-  document.getElementById("rkAfterSub").textContent = `Jul–Aug average: ${fmtEGP(beforeAvg)}`;
 
-  const octUnlockers = continuing.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct != null).length;
-  const octActive = continuing.filter((r) => monthActive(r.a, ["2026-10"]) > 0).length;
-  const rate = octActive ? Math.round((octUnlockers / octActive) * 100) : null;
-  document.getElementById("rkRate").textContent = rate == null ? "—" : rate + "%";
-  document.getElementById("rkRateSub").textContent = `${octUnlockers} of ${octActive} active agents unlocked in Oct`;
+  // ── OKR scorecard (trend-only scoring, launch baseline)
+  const cards = [
+    { kr: "KR1 · Adoption", lbl: "Agents who unlocked", val: `${octUnlockCount} of ${octActiveCount}`, sub: "active agents in Oct (month 2) · Sep: 3", tr: "▲", tc: "up", st: "On track", sc: "var(--success)" },
+    { kr: "KR2 · Speed", lbl: "Median days-to-unlock", val: "26th", sub: "Sep median: 21st · drifted +5", tr: "▼", tc: "down", st: "Watch", sc: "var(--warning)" },
+    { kr: "KR3 · Engagement", lbl: "Card views / agent / week", val: "~25", sub: "10,625 views since launch", tr: "▲", tc: "up", st: "On track", sc: "var(--success)" },
+    { kr: "KR4 · Month-end push", lbl: "Days 16–22 revenue share", val: "31.8%", sub: "pre-launch: 21.6–22.7%", tr: "▲", tc: "up", st: "On track", sc: "var(--success)" },
+    { kr: "Outcome · Revenue", lbl: "Revenue / agent / month", val: fmtEGP(afterAvg), sub: `${upPct} vs Jul–Aug · seasonality open`, tr: "▲", tc: "up", st: "Attribution open", sc: "var(--info)" },
+  ];
+  document.getElementById("repScorecard").innerHTML = cards.map((c) =>
+    `<div class="rep-kpi">
+      <div class="l">${c.kr}</div>
+      <div class="val">${c.val}</div>
+      <div class="note">${c.lbl}</div>
+      <div class="d ${c.tc}" style="margin-top:2px">${c.tr} ${c.sub}</div>
+      <span class="status-pill" style="background: color-mix(in oklab, ${c.sc} 12%, white); color: ${c.sc}">${c.st}</span>
+    </div>`
+  ).join("");
 
-  document.getElementById("rkUnlockDay").textContent = "26th";
-  const dd = document.getElementById("rkUnlockDaySub");
-  dd.textContent = "Sep median: 21st · drifted +5 days";
-  dd.className = "d down";
-
-  document.getElementById("rkTaps").textContent = "10,625";
-  document.getElementById("rkTapsSub").textContent = "Sep 190 · Oct 4,522 · Nov 5,913 (to the 22nd)";
-
-  // ── pace chart: unlock events by day (launch burst + month-end clusters)
+  // ── pace chart (unlock events by day) — unchanged data
   const UNLOCK_DAILY = [
-    // Sep (30)
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,43,5,14,14,0,0,0,0,0,0,0,
-    // Oct (31)
     0,0,0,0,1,6,0,0,0,0,0,0,0,0,25,5,37,62,71,49,76,0,0,0,84,190,289,237,199,43,208,
-    // Nov (22)
     208,0,0,0,0,0,0,0,0,0,0,0,0,0,9,25,73,52,43,5,79,24,
   ];
   const dayLabels = [];
@@ -1448,93 +1417,54 @@ function renderReport() {
     }],
   }, { notMerge: true });
 
-  // ── What helped / What hurt / Keep an eye on
-  const li = (t) => `<li>${t}</li>`;
-  document.getElementById("hhHelped").innerHTML = [
-    li(`<b>+${fmtEGP(Math.max(uDelta, 0))}</b> on average for the ${unlockers.length} agents who unlocked — <b>${fmtEGP(uBefore)}</b> → <b>${fmtEGP(uAfter)}</b> per month.`),
-    li(`<b>+${fmtEGP(avg(early(continuing).map((r) => r.after / r.ma)) - avg(early(continuing).map((r) => r.before / r.mb)))}</b> for the ${early(continuing).length} agents who unlocked by day 20 — crossing the threshold early tracks with the strongest months.`),
-    li(`<b>208 rechecks on Nov 1</b>: the progress card is the first thing agents open in a new month — the habit took.`),
-  ].join("");
-  document.getElementById("hhHurt").innerHTML = [
-    li(`<b>${fmtEGP(nDelta)}</b> for the ${never.length} agents who never unlocked — ${Math.round((never.length / Math.max(continuing.length, 1)) * 100)}% of the continuing group, and the only cohort that went backwards.`),
-    li(`<b>Unlock day drifted +5 days</b> (median 21st → 26th): most agents now cross 70% only in the final week, so the visible-number effect lands too late to change behaviour.`),
-    li(`<b>Only 3 agents unlocked in September</b> — a full month after launch passed before the mechanic reached most of the roster.`),
-  ].join("");
-  document.getElementById("hhWatch").innerHTML = [
-    li(`<b>November is partial</b> (data through the 22nd): month-end pushes usually add the last chunk — don't judge the month yet.`),
-    li(`<b>December's day-1 rechecks</b>: November saw 208; noticeably fewer on Dec 1 means engagement is fading before revenue does.`),
-    li(`<b>October unlockers with a soft November</b>: check their payouts actually landed — a missed payout kills the mechanic's credibility.`),
-  ].join("");
-  function early(rows) { return rows.filter((r) => r.cohort === "early"); }
-
-  // ── 60-second version
-  document.getElementById("rep60").innerHTML =
-    `The commission progress card launched on <b>Sep 20</b>. Since then, the ${continuing.length} agents who sold on both sides average <b>${fmtEGP(beforeAvg)} → ${fmtEGP(afterAvg)} EGP/month (${upPct})</b>. ` +
-    `The split is stark: <b>${everUnlocked} agents unlocked their commission at least once and gained ${uDelta >= 0 ? "+" : ""}${fmtEGP(uDelta)}/month on average</b>; the ${never.length} who never unlocked slipped ${fmtEGP(nDelta)}. ` +
-    `But most agents cross 70% only in the last week — the median unlock day moved from the 21st to the 26th — so the number to manage is <b>days-to-unlock</b>, and it is getting worse even as revenue improves. ` +
-    `Coach the ${never.length} never-unlockers and pull the unlock moment a week earlier.`;
-
-  // ── where did the move come from
-  document.getElementById("moveLede").innerHTML =
-    `The ${uplift >= 0 ? "+" : ""}${fmtEGP(afterAvg - beforeAvg)} average move decomposes cleanly: ` +
-    `<b>unlockers contributed ${uDelta * shareU >= 0 ? "+" : ""}${fmtEGP(uDelta * shareU)}</b> of it (their ${fmtEGP(uDelta)} gain weighted by a ${Math.round(shareU * 100)}% share), ` +
-    `while never-unlockers dragged <b>${fmtEGP(nDelta * shareN)}</b> (weighted by ${Math.round(shareN * 100)}%).`;
-
-  // ── timeline (earlier months + launch marker)
-  document.getElementById("tlLede").innerHTML =
-    `Field revenue by month — <b>Jul & Aug ran before the card</b>, Sep was the bridge month (launched day 20), Oct the first full month with the feature, Nov covers the 1st–22nd.`;
-  const months = ["2026-07", "2026-08", "2026-09", "2026-10", "2026-11"];
-  const revByMonth = months.map((m) => all.reduce((s, a) => s + (a.monthly ?? []).filter((x) => monthKey(x.month) === m).reduce((t, x) => t + Number(x.impact || 0), 0), 0));
-  const tl = repChart("repTimeline");
-  tl.setOption({
+  // ── THE FAIR TEST: month-end push share (same window, every month)
+  const PUSH_SHARE = [
+    { m: "Jul", share: 22.7, post: false },
+    { m: "Aug", share: 21.6, post: false },
+    { m: "Sep", share: 24.5, post: true },
+    { m: "Oct", share: 25.9, post: true },
+    { m: "Nov*", share: 31.8, post: true },
+  ];
+  document.getElementById("pushLede").innerHTML =
+    `If the card motivates target-hitting, agents should push harder in the back half of the month — and that shows up as revenue. The test: what share of each month's revenue (days 1–22) was earned in the <b>days-16–22 window</b>? Same calendar week every month, so months compare cleanly. ` +
+    `Pre-launch the share sat at <b>21.6–22.7%</b> (Jul even drifted down vs Aug). After launch it climbed every single month: <b>24.5% → 25.9% → 31.8%</b> — a +9pt behaviour shift in three months, with no comparable move in any pre-launch month. This is the fairest revenue-linked evidence the feature has.`;
+  const ps = repChart("repPush");
+  ps.setOption({
     animation: !reducedMotion,
-    grid: { left: 60, right: 24, top: 30, bottom: 30 },
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
-    xAxis: { type: "category", data: ["Jul", "Aug", "Sep", "Oct", "Nov*"], axisLabel: { ...axisFont }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    grid: { left: 56, right: 20, top: 40, bottom: 30 },
+    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => v + "%" },
+    xAxis: { type: "category", data: PUSH_SHARE.map((p) => p.m), axisLabel: { ...axisFont }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", max: 36, axisLabel: { ...axisFont, formatter: (v) => v + "%" }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
     series: [{
       type: "bar",
-      data: revByMonth.map((v, i) => ({ value: v, itemStyle: { color: i < 2 ? "oklch(0.75 0.03 220)" : "oklch(0.55 0.09 210)", borderRadius: [5, 5, 0, 0] } })),
+      data: PUSH_SHARE.map((p) => ({ value: p.share, itemStyle: { color: p.post ? "oklch(0.55 0.09 210)" : "oklch(0.75 0.03 220)", borderRadius: [5, 5, 0, 0] } })),
       barMaxWidth: 52,
+      label: { show: true, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.35 0.05 250)", formatter: (p) => p.value + "%" },
       markLine: {
         silent: true, symbol: "none", animation: false,
-        lineStyle: { color: "oklch(0.62 0.16 165)", type: "dashed", width: 2 },
-        label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.45 0.1 165)", formatter: "launch · Sep 20" },
-        data: [{ xAxis: 2 }],
+        data: [
+          { yAxis: 22.15, lineStyle: { color: "oklch(0.554 0.046 257.417)", type: "dashed", width: 1 }, label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "oklch(0.554 0.046 257.417)", formatter: "pre-launch avg 22.2%", position: "insideEndTop" } },
+          { xAxis: "Sep", lineStyle: { color: "oklch(0.62 0.16 165)", type: "dashed", width: 2 }, label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.45 0.1 165)", formatter: "launch · Sep 20" } },
+        ],
       },
-      label: { show: true, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.35 0.05 250)", formatter: (p) => fmtEGP(p.value) },
     }],
   }, { notMerge: true });
-  document.getElementById("tlNote").textContent = "Monthly field revenue (EGP), all field agents — total_revenue on the business date, the Control Tower field-agents convention. November covers the 1st–22nd.";
-  document.getElementById("launchNote").innerHTML =
-    `<b>How did the launch month go?</b> September closed at ${fmtEGP(revByMonth[2])}, roughly flat vs August (${fmtEGP(revByMonth[1])}) — expected, since the card only influenced the last third of the month. ` +
-    `October, the first full month with the feature, closed at <b>${fmtEGP(revByMonth[3])}</b> (+${Math.round(((revByMonth[3] - revByMonth[1]) / revByMonth[1]) * 100)}% vs August). ` +
-    `November has ${fmtEGP(revByMonth[4])} through the 22nd; month-end pushes usually add the final chunk, so treat any full-month estimate as a rough guide.`;
 
-  // ── waterfall
-  document.getElementById("wfLede").innerHTML =
-    `Splitting the same ${continuing.length} continuing agents by whether they ever unlocked: ` +
-    `<b>${unlockers.length} unlockers</b> moved from ${fmtEGP(uBefore)} to ${fmtEGP(uAfter)} per month (${uDelta >= 0 ? "+" : ""}${fmtEGP(uDelta)}), ` +
-    `while <b>${never.length} never-unlockers</b> moved from ${fmtEGP(nBefore)} to ${fmtEGP(nAfter)} (${nDelta >= 0 ? "+" : ""}${fmtEGP(nDelta)}). ` +
-    `The unlocked group is where the revenue lift concentrated.`;
-  const wf = [
-    { lbl: "Before · Jul–Aug avg", cls: "total", start: 0, w: beforeAvg, val: fmtEGP(beforeAvg), vc: "" },
-    { lbl: "Agents who unlocked", cls: "pos", start: beforeAvg, w: Math.abs(uDelta * shareU), val: (uDelta * shareU >= 0 ? "+" : "") + fmtEGP(uDelta * shareU), vc: uDelta * shareU >= 0 ? "pos" : "neg" },
-    { lbl: "Agents who never did", cls: nDelta * shareN >= 0 ? "pos" : "neg", start: beforeAvg + uDelta * shareU, w: Math.abs(nDelta * shareN), val: (nDelta * shareN >= 0 ? "+" : "") + fmtEGP(nDelta * shareN), vc: nDelta * shareN >= 0 ? "pos" : "neg" },
-    { lbl: "After · Sep–Nov avg", cls: "total", start: 0, w: afterAvg, val: fmtEGP(afterAvg), vc: "" },
-  ];
-  const maxW = Math.max(beforeAvg, afterAvg, beforeAvg + uDelta * shareU + nDelta * shareN, 1);
-  document.getElementById("wfRows").innerHTML = wf.map((r) => {
-    const leftPct = (r.start / maxW) * 100;
-    const wPct = Math.max((r.w / maxW) * 100, 1.5);
-    return `<div class="wf-row">
-      <span class="lbl${r.cls === "total" ? "" : " dim"}">${r.lbl}</span>
-      <div class="wf-track"><div class="wf-bar ${r.cls}" style="left:${leftPct.toFixed(1)}%; width:${wPct.toFixed(1)}%"></div></div>
-      <span class="val ${r.vc}">${r.val}</span>
-    </div>`;
-  }).join("");
+  // ── honest attribution
+  document.getElementById("claimLede").innerHTML =
+    `Three things block a clean revenue claim today: ` +
+    `<b>(1) Seasonality — October is always our strongest month</b>, so October's +34% vs August overstates any feature effect. ` +
+    `<b>(2) The obvious comparison is circular</b>: crossing 70% requires selling, so "unlockers out-sold never-unlockers" is true by construction — it says who the feature reached, not what it caused. ` +
+    `<b>(3) November is partial</b> (through the 22nd).`;
+  document.getElementById("claimLede2").innerHTML =
+    `<b>How it gets settled:</b> December is the verdict month — the first like-for-like full month after both apps got the card. The CashVan rollout in November doubles as a natural experiment: if the card causes the push, cashvan's month-end share (which sits at the pre-launch level today) should climb in December the way presell's did. ` +
+    `Until then, the <b>days-16–22 push share is the leading indicator we manage</b> — it moved before revenue could, in the same weeks, in the direction the feature predicts.`;
 
-  // ── cohorts
+  // ── reach (signal, not proof)
+  document.getElementById("reachLede").innerHTML =
+    `The card reached <b>${unlockers.length} of ${continuing.length} continuing agents</b> in its first full month — and missed <b>${never.length}</b>. ` +
+    `Reach matters: unlockers average <b>${fmtEGP(uAfter)}</b> per month since launch vs <b>${fmtEGP(nAfter)}</b> for never-unlockers, and the gap is exactly the coaching opportunity. ` +
+    `But cross out the circular part — crossing 70% requires selling, so some of that gap existed before the card. The causal test stays with the push share and December.`;
   const earlyRows = continuing.filter((r) => r.cohort === "early");
   const lateRows = continuing.filter((r) => r.cohort === "late");
   const cohorts = [
@@ -1560,7 +1490,7 @@ function renderReport() {
   const VIEWS = [190, 4522, 5913];
   document.getElementById("engLede").innerHTML =
     `Yes — sharply. Progress-card views went <b>190</b> (September, launch week only) → <b>4,522</b> (October) → <b>5,913</b> (November, through the 22nd). ` +
-    `November is on pace to roughly double October, and the unlock-event bursts line up with the month-end view spikes: agents check the card most exactly when they are pushing past 70%.`;
+    `November is on pace to roughly double October, and unlock events cluster with the month-end view spikes: agents check the card most exactly when they are pushing past 70%.`;
   const vc = repChart("repViews");
   vc.setOption({
     animation: !reducedMotion,
@@ -1578,51 +1508,34 @@ function renderReport() {
     `When the bar crosses 70% an <b>unlock celebration</b> fires (81 so far); when the number moves, an update popup shows the delta (3,760 viewed, 3,654 dismissed). ` +
     `Views cluster at month-end, exactly when agents are pushing past the threshold.`;
 
-  // ── movers
-  const withDelta = continuing
-    .map((r) => ({ name: r.a.agent_name, b: r.before / r.mb, af: r.after / r.ma, d: r.after / r.ma - r.before / r.mb }))
-    .sort((x, y) => y.d - x.d);
-  const gains = withDelta.slice(0, 3);
-  const drops = withDelta.slice(-3).reverse();
-  document.getElementById("movLede").innerHTML =
-    `Monthly-average revenue, continuing agents only. The movers spread across the roster — the names below together account for a modest share of the total, so the lift is broad rather than driven by one star.`;
-  const movTable = (title, rows, cls) =>
-    `<div class="mv"><h4>${title}</h4><table><thead><tr><th>Agent</th><th class="num">Before</th><th class="num">After</th><th class="num">Δ /month</th></tr></thead><tbody>` +
-    rows.map((r) => `<tr><td>${r.name}</td><td class="num">${fmtEGP(r.b)}</td><td class="num">${fmtEGP(r.af)}</td><td class="num ${cls}">${r.d >= 0 ? "+" : ""}${fmtEGP(r.d)}</td></tr>`).join("") +
-    `</tbody></table></div>`;
-  document.getElementById("repMovers").innerHTML =
-    movTable("Biggest gains", gains, "up") + movTable("Biggest drops", drops, "down");
-
-  // ── recommendations
-  const neverNov = avg(never.map((r) => r.nov).filter((v) => v > 0));
-  const unlockedNov = avg(unlockers.map((r) => r.nov).filter((v) => v > 0));
-  const lateOct = unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct >= 26);
+  // ── recommendations (OKR actions)
   const launchCohort = continuing.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.sep != null);
-  document.getElementById("recoLede").textContent = "Proposals to discuss, ranked by what they could be worth. The figures are rough and use the assumption shown.";
+  const lateOct = unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct >= 26);
+  document.getElementById("recoLede").textContent = "Proposals to discuss, ranked by how they protect the OKR. Figures are rough and use the assumption shown.";
   const recos = [
     {
-      t: `Coach the ${never.length} continuing agents who have never unlocked the commission.`,
-      w: `They average <b>${fmtEGP(nAfter)}</b> per month since launch vs <b>${fmtEGP(uAfter)}</b> for agents who unlocked. Closing even a quarter of that gap across the group is worth about <b>${fmtEGP(0.25 * never.length * Math.max(uAfter - nAfter, 0))}</b> a month. ${never.filter((r) => r.nov > 0).length} of them were still selling in November, so the relationship is live. <i>See the numbers: the waterfall and cohorts above.</i>`,
-      badge: ["strong", "Strong evidence"],
-    },
-    {
-      t: `Get the ${lateOct.length} agents who unlocked after day 25 in October to cross 70% a week earlier.`,
-      w: `They carried below the threshold for three quarters of the month — the visible-number effect only works once the bar is in sight. Median first-unlock day went from the <b>21st (Sep)</b> to the <b>26th (Oct)</b>; a week-3 supervisor check-in is the cheapest lever.`,
+      t: `Make days-to-unlock a managed weekly number — which needs per-agent target data in the snapshot.`,
+      w: `Right now the report can say <b>that</b> unlock day drifted later (21st → 26th) but not <b>why</b>. Pulling each agent's monthly target into the next sync lets us compute every agent's achievement pace daily and tell apart "targets make 70% unreachable early" from "agents push late". Without it, KR2 stays unmanageable.`,
       badge: ["check", "Check first"],
     },
     {
-      t: `Repeat the launch-day moment: the ${launchCohort.length} agents who unlocked in the first 48 hours (Sep 20–22) are the feature's proof story.`,
-      w: launchCohort.map((r) => `${r.a.agent_name}: <b>${fmtEGP(r.before / r.mb)}</b> → <b>${fmtEGP(r.after / r.ma)}</b> per month`).join(", ") + `. Feature them in the next field meeting.`,
+      t: `December is the revenue verdict month — pre-commit to the read-out.`,
+      w: `Compare December vs October on (a) month-end push share and (b) revenue per agent. If December holds October's push behaviour with seasonality stripped, the attribution case strengthens materially; the CashVan rollout (card reached cashvan agents in November) doubles as a natural control group to watch.`,
       badge: ["strong", "Strong evidence"],
     },
     {
-      t: `Keep the month-end tap rhythm — it is the feature working, not noise.`,
-      w: `Unlock-flag views spike at month-end (Oct 26–31 alone: <b>1,042</b>) as agents push past 70%. The ${never.length} never-unlockers barely open the card at all; pairing them with a same-route unlocker costs nothing.`,
+      t: `Coach the ${never.length} continuing agents who have never unlocked.`,
+      w: `They average <b>${fmtEGP(nAfter)}</b> per month since launch vs <b>${fmtEGP(uAfter)}</b> for unlockers, and ${never.filter((r) => r.nov > 0).length} of them were still selling in November — the relationship is live. The gap is partly pre-existing strength, so coach to the behaviour (check the card, chase 70%) not just the revenue.`,
+      badge: ["strong", "Strong evidence"],
+    },
+    {
+      t: `Move the unlock moment earlier: a day-15 supervisor check-in for agents under 70%.`,
+      w: `The push share proves agents respond to the visible number — but late. ${lateOct.length} agents unlocked after day 25 in October. A week-3 nudge while the bar is still below 70% aims that push a week earlier, which is exactly KR2.`,
       badge: ["check", "Check first"],
     },
     {
-      t: `Watch December's day-1 carry-over as an engagement signal.`,
-      w: `<b>208 unlock-flag views on Nov 1</b> mean agents re-check the card the moment a new month opens — the hook is habit-forming. If Dec 1 comes in well below that, engagement is fading before revenue does.`,
+      t: `Confirm the October unlockers' payouts actually landed.`,
+      w: `81 celebrations fired; ${continuing.filter((r) => r.cohort !== "never" && r.nov < r.oct).length} October unlockers showed a softer November. A single missed payout after an unlock kills the mechanic's credibility with the whole roster.`,
       badge: ["check", "Check first"],
     },
   ];
@@ -1630,20 +1543,21 @@ function renderReport() {
     `<div class="reco"><div class="num">${i + 1}</div><div><h4>${r.t}</h4><p><b>Why:</b> ${r.w}</p><span class="ev ${r.badge[0]}">${r.badge[1]}</span></div></div>`
   ).join("");
   document.getElementById("recoAlso").innerHTML =
-    `<b>Also worth a look (not sized):</b> the ${continuing.filter((r) => r.cohort !== "never" && r.nov < r.oct).length} October unlockers whose November revenue dipped (seasonality vs a missed payout — check the commission ledger first); whether telesales and fulfillment agents should get the same progress card (tap events exist for both apps but no unlock data yet); and a weekly "days-to-unlock" leaderboard inside the PWA.`;
+    `<b>Also worth a look (not sized):</b> whether 70% is mathematically reachable before day 20 under current target-setting (if not, the threshold — not the agents — is the constraint); a weekly "days-to-unlock" leaderboard inside the PWA; and giving supervisors a live unlock board.`;
 
   // ── methodology
   document.getElementById("repMethod").innerHTML =
-    `<b>Revenue</b> is counted the same way as the admin dashboard: <b>total_revenue</b> from delivered orders (full or partial, not cancelled or voided), on the business date, Cairo time, FIELD channel — the Control Tower field-agents measure. ` +
-    `<b>Before</b> means Jul–Aug; <b>after</b> means Sep–Nov. <b>Continuing agents</b> had revenue in both periods, so a part month is never compared with a full one. ` +
-    `<b>Unlock day</b> is the first day of a month where the agent's progress card showed <b>unlocked = true</b> — the app's own number, computed from its target and achievement. ` +
-    `Nov-1 unlock flags reflect October's state carried into the new month and are excluded from unlock-day statistics. ` +
-    `<b>Cohorts</b> use the first October unlock day: ≤ day 20 = early, later = late, none = never. ` +
-    `<b>Taps/views</b> are commission_progress_card_viewed events from the Presell Sales Agent App (Mixpanel, EU). ` +
-    `Unlock history is fixed for past months; new months are seeded with the runbook in insights/README.md.`;
+    `<b>Revenue</b> follows the admin-dashboard convention: <b>total_revenue</b> from delivered orders (full or partial, not cancelled or voided), on the business date, Cairo time, FIELD channel. ` +
+    `<b>Before</b> = Jul–Aug; <b>after</b> = Sep–Nov; <b>continuing agents</b> had revenue in both periods (so part months never compare against full ones). ` +
+    `<b>Push share</b> = revenue earned on days 16–22 as a % of days 1–22 — the same calendar week in every month; months are never compared part-vs-full. ` +
+    `<b>Unlock day</b> = first day of a month where the agent's progress card showed <b>unlocked = true</b> (the app's own achievement number); Nov-1 flags reflect October's state and are excluded. ` +
+    `<b>Scoring</b> is trend-only against the launch baseline — no hard targets were set for this quarter, so KRs report improving / worsening rather than % of target. ` +
+    `Sources: Presell Sales Agent App (Mixpanel EU), Tele-Sales App + CashVan App (Mixpanel US), Control Tower OLAP. Unlock history is fixed for past months; new months follow the runbook in insights/README.md.`;
 
   repCharts.forEach((c) => c.resize());
 }
+
+function showView(which) {
 
 function showView(which) {
   const dash = which === "dash";
