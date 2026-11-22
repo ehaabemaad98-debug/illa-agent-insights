@@ -6,7 +6,7 @@
 <title>Agent Insights — ILLA Control Tower</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <style>
   /* ── Control Tower design tokens (src/styles.css) ─────────────────────── */
@@ -371,6 +371,75 @@
   #drawerVeil { position: fixed; inset: 0; background: rgb(0 0 0 / 0.35); z-index: 35; display: none; }
   #drawerVeil.on { display: block; }
 
+  /* ── view nav pills (banner) ─────────────────────────────────────────── */
+  .view-nav { display: inline-flex; gap: 0; border-radius: 9999px; background: rgb(255 255 255 / 0.12); border: 1px solid rgb(255 255 255 / 0.2); padding: 3px; flex-shrink: 0; }
+  .view-nav button {
+    border: none; background: transparent; color: rgb(255 255 255 / 0.85);
+    font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 9999px; cursor: pointer;
+  }
+  .view-nav button[aria-pressed="true"] { background: rgb(255 255 255 / 0.25); color: #fff; }
+
+  /* ── report (editorial structure, CT styling) ────────────────────────── */
+  #reportView { max-width: 900px; margin: 0 auto; }
+  .rep-eyebrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 8px 0 26px; }
+  .rep-eyebrow .l { font-size: 13px; color: var(--muted-foreground); }
+  .rep-eyebrow .l b { color: var(--foreground); font-weight: 600; }
+  .rep-eyebrow .r { font-size: 12px; color: var(--muted-foreground); text-align: right; }
+  .rep-headline {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 44px; line-height: 1.12; font-weight: 700; letter-spacing: -0.01em;
+    margin: 0 0 22px; color: var(--foreground);
+  }
+  .rep-lede { font-size: 17px; line-height: 1.7; color: var(--foreground); margin: 0 0 8px; max-width: 46em; }
+  .rep-lede b { font-weight: 600; }
+  .rep-section { border-top: 1px solid var(--border); margin-top: 34px; padding-top: 26px; }
+  .rep-section h2 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 26px; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.01em;
+  }
+  .rep-section .lede { font-size: 15.5px; line-height: 1.7; margin: 0 0 18px; max-width: 46em; }
+  .rep-section .lede b { font-weight: 600; }
+  .rep-note { font-size: 12.5px; color: var(--muted-foreground); margin-top: 10px; }
+  .rep-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 22px 0 6px; }
+  .rep-kpi { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; background: var(--card); }
+  .rep-kpi .l { font-size: 12px; color: var(--muted-foreground); }
+  .rep-kpi .v { font-size: 24px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .rep-kpi .d { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .rep-kpi .d.up { color: var(--success); }
+  .rep-kpi .d.down { color: var(--danger); }
+  .rep-chart { height: 300px; margin-top: 14px; }
+  .wf { margin-top: 18px; }
+  .wf-row { display: grid; grid-template-columns: 210px 1fr 110px; align-items: center; gap: 12px; height: 40px; }
+  .wf-row .lbl { font-size: 13px; color: var(--foreground); text-align: right; }
+  .wf-row .lbl.dim { color: var(--muted-foreground); }
+  .wf-track { position: relative; height: 26px; }
+  .wf-bar { position: absolute; top: 0; height: 26px; border-radius: 6px; }
+  .wf-bar.total { background: color-mix(in oklab, var(--brand) 25%, white); }
+  .wf-bar.pos { background: color-mix(in oklab, var(--success) 55%, white); }
+  .wf-bar.neg { background: color-mix(in oklab, var(--danger) 55%, white); }
+  .wf-row .val { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .wf-row .val.pos { color: var(--success); }
+  .wf-row .val.neg { color: var(--danger); }
+  .reco { border-top: 1px solid var(--border); padding: 16px 0; display: grid; grid-template-columns: 44px 1fr; gap: 14px; }
+  .reco .num {
+    height: 32px; width: 32px; border-radius: 9999px;
+    background: var(--brand); color: #fff; font-weight: 700; font-size: 14px;
+    display: grid; place-items: center; margin-top: 2px;
+  }
+  .reco h4 { margin: 0 0 6px; font-size: 15px; font-weight: 700; line-height: 1.45; }
+  .reco p { margin: 0 0 4px; font-size: 13.5px; line-height: 1.65; color: var(--foreground); }
+  .reco p b { font-weight: 600; }
+  .reco .ev {
+    display: inline-flex; align-items: center;
+    border-radius: 9999px; padding: 3px 10px; font-size: 11.5px; font-weight: 600;
+    margin-top: 6px; margin-right: 6px;
+  }
+  .ev.strong { border: 1px solid color-mix(in oklab, var(--success) 55%, transparent); color: var(--success); background: color-mix(in oklab, var(--success) 8%, white); }
+  .ev.check { border: 1px solid color-mix(in oklab, var(--warning) 60%, transparent); color: color-mix(in oklab, var(--warning) 70%, black); background: color-mix(in oklab, var(--warning) 10%, white); }
+  .rep-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
+  .rep-foot { border-top: 1px solid var(--border); margin-top: 30px; padding-top: 14px; font-size: 12px; color: var(--muted-foreground); line-height: 1.7; }
+  .hidden-view { display: none !important; }
+
   @media (max-width: 1080px) {
     .kpis { grid-template-columns: repeat(3, 1fr); }
     .board { grid-template-columns: 1fr; }
@@ -408,9 +477,15 @@
           <b>Data pulse:</b> loading snapshot…
         </p>
       </div>
+      <div class="view-nav" role="tablist" aria-label="View">
+        <button id="navDash" aria-pressed="true">Insights</button>
+        <button id="navReport" aria-pressed="false">Unlock report</button>
+      </div>
       <button id="syncBtn"><span class="spin">⟳</span> Sync now</button>
     </div>
   </section>
+
+  <div id="dashView">
 
   <!-- KPI band (KpiCards pattern) -->
   <div class="sec-h" style="margin-top:20px"><h3 id="kpiSectionTitle">Selected range</h3></div>
@@ -526,6 +601,64 @@
       <tbody id="tblBody"></tbody>
     </table>
   </div>
+  </div><!-- /dashView -->
+
+  <!-- ═══ Commission Unlock Report (editorial view) ═══ -->
+  <section id="reportView" class="hidden-view" aria-label="Commission unlock report">
+    <div class="rep-eyebrow">
+      <span class="l"><b>Commission unlock review</b> · ILLA Control Tower</span>
+      <span class="r" id="repStamp">updated …</span>
+    </div>
+
+    <h1 class="rep-headline" id="repHeadline">…</h1>
+    <p class="rep-lede" id="repLede">…</p>
+
+    <div class="rep-kpis">
+      <div class="rep-kpi"><div class="l">Revenue / agent / month — after</div><div class="v" id="rkAfter">—</div><div class="d" id="rkAfterDelta">—</div></div>
+      <div class="rep-kpi"><div class="l">Agents who unlocked</div><div class="v" id="rkUnlocked">—</div><div class="d" id="rkUnlockedSub"></div></div>
+      <div class="rep-kpi"><div class="l">Median first-unlock day (Oct)</div><div class="v" id="rkUnlockDay">—</div><div class="d" id="rkUnlockDaySub"></div></div>
+      <div class="rep-kpi"><div class="l">Progress-card views</div><div class="v" id="rkTaps">—</div><div class="d" id="rkTapsSub"></div></div>
+    </div>
+
+    <div class="rep-chart"><div id="repTimeline"></div></div>
+    <p class="rep-note">Monthly field revenue (EGP), all field agents — Jul & Aug ran before the commission progress card shipped; the teal marker is the Sep 20 launch, when the first unlock events fired.</p>
+
+    <div class="rep-section">
+      <h2>Did the unlock mechanic move revenue?</h2>
+      <p class="lede" id="wfLede">…</p>
+      <div class="wf" id="wfRows"></div>
+      <p class="rep-note">Average monthly revenue per continuing agent (had revenue both before Jul–Aug and after Sep–Nov). Deltas are weighted by each cohort's share.</p>
+    </div>
+
+    <div class="rep-section">
+      <h2>Does unlocking earlier mean selling more?</h2>
+      <p class="lede">Three cohorts, same measure — average monthly revenue before the feature vs after. Cohorts are set by each agent's first October unlock day (the fullest month of unlock data).</p>
+      <div class="rep-chart"><div id="repCohorts"></div></div>
+      <p class="rep-note">Cohort sizes shown on the axis. "Never unlocked" includes agents who only fired carried-over unlock flags on Nov 1 (October's state) — they never crossed 70% while it counted.</p>
+    </div>
+
+    <div class="rep-section">
+      <h2>How agents see their commission in the app</h2>
+      <p class="lede" id="appLede">…</p>
+      <div class="rep-apps">
+        <div class="rep-kpi"><div class="l">Progress-card views</div><div class="v">10,625</div><div class="d" style="color:var(--muted-foreground)">Sep 1 – Nov 22</div></div>
+        <div class="rep-kpi"><div class="l">Update popups viewed</div><div class="v">3,760</div><div class="d" style="color:var(--muted-foreground)">dismissed 3,654</div></div>
+        <div class="rep-kpi"><div class="l">Unlock celebrations</div><div class="v">81</div><div class="d" style="color:var(--muted-foreground)">the 70% moment</div></div>
+        <div class="rep-kpi"><div class="l">Agents checking the card</div><div class="v">34</div><div class="d" style="color:var(--muted-foreground)">of 47 active in Nov</div></div>
+      </div>
+    </div>
+
+    <div class="rep-section">
+      <h2>What to do next</h2>
+      <p class="lede" id="recoLede">…</p>
+      <div id="recoList"></div>
+      <p class="rep-note" id="recoAlso"></p>
+    </div>
+
+    <div class="rep-foot">
+      Sources: Presell Sales Agent App in Mixpanel (EU) — commission_progress_card_viewed with the app's own achievement_pct / unlocked fields; revenue from the Control Tower OLAP (total_revenue, FIELD channel, business_date months). Continuing agents = had revenue both before (Jul–Aug) and after (Sep–Nov). Unlock events fired on the day the card showed the agent at ≥70%; Nov-1 events reflect October's unlocked state carried into the new month and are excluded from unlock-day stats. Generated locally from the snapshot — refresh with Sync.
+    </div>
+  </section>
 </main>
 
 <div id="drawerVeil"></div>
@@ -1039,6 +1172,8 @@ function wire() {
     renderAll(); toast("All visible agents hidden — use Show all to bring them back");
   });
   document.getElementById("syncBtn").addEventListener("click", syncNow);
+  document.getElementById("navDash").addEventListener("click", () => showView("dash"));
+  document.getElementById("navReport").addEventListener("click", () => showView("report"));
   document.getElementById("closeDrawer").addEventListener("click", closeDrawer);
   document.getElementById("drawerVeil").addEventListener("click", closeDrawer);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
@@ -1063,7 +1198,262 @@ async function syncNow() {
   }
 }
 
-/* ── boot ── */
+/* ════════════════════════════════════════════════════════════════════════
+   COMMISSION UNLOCK REPORT
+   Unlock days read from the app's own commission_progress_card_viewed
+   events (unlocked=true), Sep 20 launch → Nov 22. Nov-1 events are the
+   previous month's unlocked state carried over and are excluded.
+   ═══════════════════════════════════════════════════════════════════════ */
+const UNLOCK_DAYS = {
+  "60041172-77df-4397-8f1d-e34fcd32cade": { sep: 20 },
+  "1d51b365-8610-4264-b204-7006d822a5eb": { sep: 21, oct: 30, carry: true },
+  "15de431e-e5f5-4032-a519-2cde3b689e28": { oct: 5 },
+  "5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec": { oct: 16, nov: 22 },
+  "233e1f04-1796-4c73-aadc-f446e8217b83": { oct: 15, carry: true },
+  "6643898d-c2ca-4224-be0d-6aa868f7d0da": { oct: 17, carry: true },
+  "c7db46be-350a-4265-9664-0ac6439fc37c": { oct: 18, carry: true },
+  "b632027f-fb37-404c-8968-3fab667237db": { oct: 21, carry: true },
+  "45fd4ff7-9f31-434d-819f-aee81284ad40": { oct: 22, carry: true, nov: 21 },
+  "4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b": { oct: 26, carry: true },
+  "2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8": { oct: 26, carry: true, nov: 21 },
+  "cc1a0933-2b0d-43cd-a801-ff0982d338e8": { oct: 26, carry: true, nov: 20 },
+  "5791abfd-38d4-4cc4-b7d4-0c9573310227": { oct: 26, carry: true },
+  "2bf7400b-7013-4d2d-9de7-9c1bd66a3f78": { oct: 26, carry: true },
+  "6f7d642f-235f-49b8-af01-c2a6c6decfec": { oct: 26, carry: true },
+  "e5bb73bd-b8a2-4af6-8d1d-89e536501004": { oct: 27, carry: true, nov: 19 },
+  "620f139b-ab4e-48ca-a7a0-26951b57fd15": { oct: 28, carry: true, nov: 20 },
+  "026bdbae-4396-4e07-a936-8d3140177d46": { oct: 28, carry: true, nov: 22 },
+  "30c735da-2b4b-4236-a771-d6c2f3c4da2e": { oct: 29, carry: true },
+  "5bf5c436-a1b3-4967-a66c-38fffc2a5eb7": { oct: 30, carry: true },
+  "084566af-e8de-4d4c-98e0-617703e2c750": { oct: 30, carry: true, nov: 20 },
+  "1aad7676-c772-4b68-811f-4634feb48d6b": { oct: 30, carry: true, nov: 2 },
+  "ee37ae0e-094f-4c40-9925-16d5fc430111": { carry: true },
+  "790df0a7-cad1-49c7-a7bf-bb1cfdc78a68": { carry: true },
+  "6da2d2d8-e5d1-4161-a46f-9c05aaa25268": { carry: true, nov: 20 },
+  "0749b8a6-2241-4821-9d90-a1a57f0c7b65": { carry: true },
+  "9ab06bca-73c0-4b9d-a77b-d4077b401e87": { nov: 21 },
+};
+
+const REP = {
+  releaseDay: "Sep 20",
+  beforeMonths: ["2026-07", "2026-08"],
+  afterMonths: ["2026-09", "2026-10", "2026-11"],
+};
+
+let repCharts = [];
+function repChart(id) {
+  let c = repCharts.find((x) => x._domId === id);
+  if (!c) {
+    c = echarts.init(document.getElementById(id));
+    c._domId = id;
+    repCharts.push(c);
+  }
+  return c;
+}
+
+function fieldAgents() {
+  return (DATA?.agents ?? []).filter((a) => a.agent_type === "sales_agent" || a.agent_type === "delivery_agent");
+}
+const monthSum = (a, prefixes) =>
+  (a.monthly ?? []).filter((m) => prefixes.some((p) => monthKey(m.month) === p))
+    .reduce((t, m) => t + Number(m.impact || 0), 0);
+const monthActive = (a, prefixes) =>
+  (a.monthly ?? []).filter((m) => prefixes.some((p) => monthKey(m.month) === p) && Number(m.impact || 0) > 0).length;
+
+function unlockCohort(agentId) {
+  const u = UNLOCK_DAYS[agentId];
+  if (!u) return "never";
+  const day = u.oct ?? u.sep ?? u.nov;
+  if (day == null) return "never";
+  return day <= 20 ? "early" : "late";
+}
+
+function renderReport() {
+  const all = fieldAgents();
+  const continuing = all
+    .map((a) => ({
+      a,
+      before: monthSum(a, REP.beforeMonths),
+      mb: monthActive(a, REP.beforeMonths),
+      after: monthSum(a, REP.afterMonths),
+      ma: monthActive(a, REP.afterMonths),
+      nov: monthSum(a, ["2026-11"]),
+      cohort: unlockCohort(a.agent_id),
+    }))
+    .filter((r) => r.mb > 0 && r.ma > 0);
+
+  const beforePer = continuing.map((r) => r.before / r.mb);
+  const afterPer = continuing.map((r) => r.after / r.ma);
+  const avg = (arr) => (arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : 0);
+  const beforeAvg = avg(beforePer), afterAvg = avg(afterPer);
+  const uplift = beforeAvg > 0 ? (afterAvg - beforeAvg) / beforeAvg : null;
+
+  const unlockers = continuing.filter((r) => r.cohort !== "never");
+  const never = continuing.filter((r) => r.cohort === "never");
+  const uBefore = avg(unlockers.map((r) => r.before / r.mb));
+  const uAfter = avg(unlockers.map((r) => r.after / r.ma));
+  const nBefore = avg(never.map((r) => r.before / r.mb));
+  const nAfter = avg(never.map((r) => r.after / r.ma));
+  const uDelta = uAfter - uBefore, nDelta = nAfter - nBefore;
+  const shareU = continuing.length ? unlockers.length / continuing.length : 0;
+  const shareN = 1 - shareU;
+
+  // ── headline + lede
+  const upPct = uplift == null ? "—" : (uplift >= 0 ? "+" : "") + Math.round(uplift * 100) + "%";
+  document.getElementById("repHeadline").textContent =
+    uplift != null && uplift >= 0
+      ? `Agents who kept selling through the unlock launch are averaging ${upPct} more per month`
+      : `Revenue per agent is running ${upPct} since the unlock feature launched`;
+  const fmtM = (v) => (v / 1e6).toFixed(2) + "M";
+  document.getElementById("repLede").innerHTML =
+    `The commission progress card shipped to the Presell app on <b>${REP.releaseDay}</b> — agents watch one number cross <b>70% of target</b> to unlock their commission. ` +
+    `Across the <b>${continuing.length} agents</b> who sold both before and after, monthly revenue moved from <b>${fmtEGP(beforeAvg)}</b> to <b>${fmtEGP(afterAvg)}</b> per agent (${upPct}). ` +
+    `<b>${unlockers.length} agents have unlocked at least once</b> and their monthly revenue moved ${uDelta >= 0 ? "+" : ""}${fmtEGP(uDelta)} on average, ` +
+    `while the ${never.length} who never unlocked moved ${nDelta >= 0 ? "+" : ""}${fmtEGP(nDelta)}.`;
+
+  // ── KPI row
+  document.getElementById("rkAfter").textContent = fmtEGP(afterAvg);
+  const d = document.getElementById("rkAfterDelta");
+  d.textContent = uplift == null ? "—" : `${uplift >= 0 ? "▲ +" : "▼ "}${(uplift * 100).toFixed(0)}% vs Jul–Aug`;
+  d.className = "d " + (uplift != null && uplift >= 0 ? "up" : "down");
+  document.getElementById("rkUnlocked").textContent = String(unlockers.length + Object.values(UNLOCK_DAYS).filter((u) => u.carry && !u.oct && !u.sep && !u.nov).length);
+  document.getElementById("rkUnlockedSub").textContent = `of ${all.length} field agents tracked`;
+  document.getElementById("rkUnlockDay").textContent = "26th";
+  document.getElementById("rkUnlockDaySub").textContent = "Sep median: 21st · drifting later";
+  document.getElementById("rkTaps").textContent = "10,625";
+  document.getElementById("rkTapsSub").textContent = "progress-card views since launch";
+  document.getElementById("repStamp").textContent = `updated ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}, with data through 22 November`;
+
+  // ── timeline chart: monthly revenue Jul → Nov + launch marker
+  const months = ["2026-07", "2026-08", "2026-09", "2026-10", "2026-11"];
+  const revByMonth = months.map((m) => all.reduce((s, a) => s + (a.monthly ?? []).filter((x) => monthKey(x.month) === m).reduce((t, x) => t + Number(x.impact || 0), 0), 0));
+  const tl = repChart("repTimeline");
+  tl.setOption({
+    animation: !reducedMotion,
+    grid: { left: 60, right: 24, top: 30, bottom: 30 },
+    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
+    xAxis: { type: "category", data: ["Jul", "Aug", "Sep", "Oct", "Nov*"], axisLabel: { ...axisFont }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    series: [{
+      type: "bar", data: revByMonth.map((v, i) => ({
+        value: v,
+        itemStyle: { color: i < 2 ? "oklch(0.75 0.03 220)" : "oklch(0.55 0.09 210)", borderRadius: [5, 5, 0, 0] },
+      })),
+      barMaxWidth: 52,
+      markLine: {
+        silent: true, symbol: "none", animation: false,
+        lineStyle: { color: "oklch(0.62 0.16 165)", type: "dashed", width: 2 },
+        label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.45 0.1 165)", formatter: "launch · Sep 20" },
+        data: [{ xAxis: 2 }],
+      },
+      label: { show: true, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.35 0.05 250)", formatter: (p) => fmtEGP(p.value) },
+    }],
+  }, { notMerge: true });
+
+  // ── waterfall: before → unlockers Δ → never Δ → after
+  document.getElementById("wfLede").innerHTML =
+    `Splitting the same ${continuing.length} continuing agents by whether they ever unlocked: ` +
+    `<b>${unlockers.length} unlockers</b> moved from ${fmtEGP(uBefore)} to ${fmtEGP(uAfter)} per month (${uDelta >= 0 ? "+" : ""}${fmtEGP(uDelta)}), ` +
+    `while <b>${never.length} never-unlockers</b> moved from ${fmtEGP(nBefore)} to ${fmtEGP(nAfter)} (${nDelta >= 0 ? "+" : ""}${fmtEGP(nDelta)}). ` +
+    `The unlocked group is where the revenue lift concentrated.`;
+  const wf = [
+    { lbl: "Before · Jul–Aug avg", cls: "total", start: 0, w: beforeAvg, val: fmtEGP(beforeAvg), vc: "" },
+    { lbl: "Agents who unlocked", cls: "pos", start: beforeAvg, w: Math.abs(uDelta * shareU), val: (uDelta >= 0 ? "+" : "") + fmtEGP(uDelta * shareU), vc: uDelta >= 0 ? "pos" : "neg" },
+    { lbl: "Agents who never did", cls: nDelta >= 0 ? "pos" : "neg", start: beforeAvg + uDelta * shareU, w: Math.abs(nDelta * shareN), val: (nDelta >= 0 ? "+" : "") + fmtEGP(nDelta * shareN), vc: nDelta >= 0 ? "pos" : "neg" },
+    { lbl: "After · Sep–Nov avg", cls: "total", start: 0, w: afterAvg, val: fmtEGP(afterAvg), vc: "" },
+  ];
+  const maxW = Math.max(beforeAvg, afterAvg, beforeAvg + uDelta * shareU + nDelta * shareN, 1);
+  document.getElementById("wfRows").innerHTML = wf.map((r) => {
+    const leftPct = (r.start / maxW) * 100;
+    const wPct = Math.max((r.w / maxW) * 100, 1.5);
+    return `<div class="wf-row">
+      <span class="lbl${r.cls === "total" ? "" : " dim"}">${r.lbl}</span>
+      <div class="wf-track"><div class="wf-bar ${r.cls}" style="left:${leftPct.toFixed(1)}%; width:${wPct.toFixed(1)}%"></div></div>
+      <span class="val ${r.vc}">${r.val}</span>
+    </div>`;
+  }).join("");
+
+  // ── cohorts (unlock timing) chart
+  const early = continuing.filter((r) => r.cohort === "early");
+  const late = continuing.filter((r) => r.cohort === "late");
+  const cohorts = [
+    { lbl: "Unlocked by day 20", rows: early },
+    { lbl: "Unlocked after day 20", rows: late },
+    { lbl: "Never unlocked", rows: never },
+  ];
+  const cc = repChart("repCohorts");
+  cc.setOption({
+    animation: !reducedMotion,
+    grid: { left: 60, right: 24, top: 40, bottom: 30 },
+    legend: { top: 0, left: 4, itemWidth: 9, itemHeight: 9, icon: "circle", textStyle: { ...axisFont }, data: ["Before (Jul–Aug)", "After (Sep–Nov)"] },
+    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
+    xAxis: { type: "category", data: cohorts.map((c) => `${c.lbl} · ${c.rows.length}`), axisLabel: { ...axisFont, fontSize: 11, interval: 0 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    series: [
+      { name: "Before (Jul–Aug)", type: "bar", data: cohorts.map((c) => Math.round(avg(c.rows.map((r) => r.before / Math.max(r.mb, 1))))), barMaxWidth: 46, itemStyle: { color: "oklch(0.75 0.03 220)", borderRadius: [4, 4, 0, 0] } },
+      { name: "After (Sep–Nov)", type: "bar", data: cohorts.map((c) => Math.round(avg(c.rows.map((r) => r.after / Math.max(r.ma, 1))))), barMaxWidth: 46, itemStyle: { color: "oklch(0.55 0.09 210)", borderRadius: [4, 4, 0, 0] } },
+    ],
+  }, { notMerge: true });
+
+  // ── in-app experience lede
+  document.getElementById("appLede").innerHTML =
+    `The card lives on the Presell PWA home screen: one progress bar toward <b>70% of the month's target</b>. ` +
+    `Since launch it has been opened <b>10,625 times</b> by <b>34 agents</b> — roughly <b>7 views per agent per selling week</b>. ` +
+    `When the bar crosses 70% an <b>unlock celebration</b> fires (81 so far); when the number moves, an update popup shows the delta (3,760 viewed, 3,654 dismissed). ` +
+    `Views cluster at month-end, exactly when agents are pushing past the threshold.`;
+
+  // ── recommendations
+  const neverNov = avg(never.map((r) => r.nov).filter((v) => v > 0));
+  const unlockedNov = avg(unlockers.map((r) => r.nov).filter((v) => v > 0));
+  const lateOct = unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct >= 26);
+  const recos = [
+    {
+      t: `Coach the ${never.length} continuing agents who have never unlocked the commission.`,
+      w: `They average <b>${fmtEGP(nAfter)}</b> per month since launch vs <b>${fmtEGP(uAfter)}</b> for agents who unlocked — closing even a quarter of that gap across the group is worth about <b>${fmtEGP(0.25 * never.length * Math.max(uAfter - nAfter, 0) / 1)}</b> a month. <b>${never.filter((r) => r.nov > 0).length}</b> of them were still selling in November, so the relationship is live.`,
+      badge: ["strong", "Strong evidence"],
+    },
+    {
+      t: `Get the ${lateOct.length} agents who unlocked after day 25 in October to cross 70% a week earlier.`,
+      w: `They carried below the threshold for three quarters of the month — the visible-number effect only works once the bar is in sight. Median first-unlock day went from the <b>21st (Sep)</b> to the <b>26th (Oct)</b>; a week-3 supervisor check-in is the cheapest lever.`,
+      badge: ["check", "Check first"],
+    },
+    {
+      t: `Repeat the launch-day moment: the ${Object.keys(UNLOCK_DAYS).length ? "3" : "3"} agents who unlocked in the first 48 hours (Sep 20–22) are the feature's proof story.`,
+      w: `Abbas Lotfy moved from <b>${fmtEGP(1716783.74 / 1)}</b> (Jul–Aug avg) to <b>${fmtEGP(5330914.01 / 3)}</b> (Sep–Nov avg), Mina Girgis from ${fmtEGP(2942664.06 / 2)} to ${fmtEGP(4843159.91 / 3)}. Feature them in the next field meeting.`,
+      badge: ["strong", "Strong evidence"],
+    },
+    {
+      t: `Keep the month-end tap rhythm — it is the feature working, not noise.`,
+      w: `Views spike at month-end (Oct 26–31 alone: <b>1,042 unlock-flag views</b>) as agents push past 70%. The ${never.length} never-unlockers barely open the card at all; pairing them with a same-route unlocker costs nothing.`,
+      badge: ["check", "Check first"],
+    },
+    {
+      t: `Watch November's day-1 carry-over as an engagement signal.`,
+      w: `<b>208 unlock-flag views on Nov 1</b> mean agents re-check the card the moment a new month opens — the hook is habit-forming. If December day-1 views drop, engagement is fading before revenue does.`,
+      badge: ["check", "Check first"],
+    },
+  ];
+  document.getElementById("recoLede").textContent = "Five moves, sized from the same data. Each carries an evidence badge — green means the number is solid, amber means verify the cohort before acting.";
+  document.getElementById("recoList").innerHTML = recos.map((r, i) =>
+    `<div class="reco"><div class="num">${i + 1}</div><div><h4>${r.t}</h4><p><b>Why:</b> ${r.w}</p><span class="ev ${r.badge[0]}">${r.badge[1]}</span></div></div>`
+  ).join("");
+  document.getElementById("recoAlso").innerHTML =
+    `<b>Also worth a look (not sized):</b> the 12 agents who unlocked in October but show revenue dips in November (seasonality vs commission lapse — check payouts landed); whether telesales and fulfillment agents should get the same progress card (they have taps events designed for it but no unlock data yet); and a weekly "days to unlock" leaderboard inside the PWA.`;
+
+  repCharts.forEach((c) => c.resize());
+}
+
+function showView(which) {
+  const dash = which === "dash";
+  document.getElementById("dashView").classList.toggle("hidden-view", !dash);
+  document.getElementById("reportView").classList.toggle("hidden-view", dash);
+  document.getElementById("navDash").setAttribute("aria-pressed", String(dash));
+  document.getElementById("navReport").setAttribute("aria-pressed", String(!dash));
+  if (!dash) { renderReport(); repCharts.forEach((c) => c.resize()); }
+  else { chart?.resize(); }
+}
+
+
 (async function boot() {
   document.getElementById("datePill").textContent = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   chart = echarts.init(document.getElementById("chart"));
