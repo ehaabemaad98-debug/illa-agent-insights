@@ -1408,7 +1408,7 @@ function renderReport() {
       formatter: (ps) => {
         let out = `<b>${ps[0].axisValue}</b><br/>`;
         for (const p of ps) {
-          const d = p.data;
+          const d = { v: p.data.value, a: p.data.agents };
           out += `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${fmtInt(d.v)}</b> views · <b>${fmtInt(d.a)}</b> agents<br/>`;
         }
         return out;
@@ -1417,9 +1417,9 @@ function renderReport() {
     xAxis: { type: "category", data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
     yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
     series: [
-      { name: "Sales (Presell PWA)", type: "line", data: PRESELL_VIEWS.map((v, i) => ({ v, a: PRESELL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.55 0.09 210)" }, itemStyle: { color: "oklch(0.55 0.09 210)" } },
-      { name: "Telesales", type: "line", data: TELE_VIEWS.map((v, i) => ({ v, a: TELE_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.62 0.18 295)" }, itemStyle: { color: "oklch(0.62 0.18 295)" } },
-      { name: "Fulfillment (CashVan)", type: "line", data: FUL_DAILY.map((v, i) => ({ v, a: FUL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.75 0.16 70)" }, itemStyle: { color: "oklch(0.75 0.16 70)" } },
+      { name: "Sales (Presell PWA)", type: "line", data: PRESELL_VIEWS.map((v, i) => ({ value: v, agents: PRESELL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.55 0.09 210)" }, itemStyle: { color: "oklch(0.55 0.09 210)" } },
+      { name: "Telesales", type: "line", data: TELE_VIEWS.map((v, i) => ({ value: v, agents: TELE_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.62 0.18 295)" }, itemStyle: { color: "oklch(0.62 0.18 295)" } },
+      { name: "Fulfillment (CashVan)", type: "line", data: FUL_DAILY.map((v, i) => ({ value: v, agents: FUL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.75 0.16 70)" }, itemStyle: { color: "oklch(0.75 0.16 70)" } },
     ],
   }, { notMerge: true });
   document.getElementById("dailyLede").innerHTML =
