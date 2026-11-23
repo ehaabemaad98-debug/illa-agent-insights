@@ -1471,7 +1471,7 @@ function renderReportInner() {
           // fulfillment has null points before Nov 1 — never touch .value/.agents on them
           const d = p.data && typeof p.data === "object" ? p.data : null;
           out += d
-            ? `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${fmtInt(d.value)}</b> views · <b>${fmtInt(d.agents)}</b> agents<br/>`
+            ? `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${fmtInt(d.value)}</b> views · <b>${fmtInt(d.agents)}</b> ${d.agents === 1 ? "agent" : "agents"}<br/>`
             : `<span style="color:${p.color}">●</span> ${p.seriesName}: — (no data yet)<br/>`;
         }
         return out;
