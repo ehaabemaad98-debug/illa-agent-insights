@@ -1732,21 +1732,28 @@ function renderReportInner() {
       return { ...r, days, st, stLabel: st === "a" ? "Active — feature gap" : st === "s" ? "Slipping — at risk" : "Inactive — likely left" };
     })
     .sort((x, y) => (x.st === y.st ? x.days - y.days : x.st.localeCompare(y.st)));
-  const zA = zeroOpen.filter((r) => r.st === "a").length;
-  const zS = zeroOpen.filter((r) => r.st === "s").length;
-  const zL = zeroOpen.filter((r) => r.st === "l").length;
+  // same human can be tracked in two channels — show them once, keep the freshest record
+  const seenNames = new Map();
+  for (const r of zeroOpen) {
+    const k = r.a.agent_name.trim().toLowerCase();
+    if (!seenNames.has(k) || r.last > seenNames.get(k).last) seenNames.set(k, r);
+  }
+  const zeroOpenDedup = [...seenNames.values()].sort((x, y) => (x.st === y.st ? x.days - y.days : x.st.localeCompare(y.st)));
+  const zA = zeroOpenDedup.filter((r) => r.st === "a").length;
+  const zS = zeroOpenDedup.filter((r) => r.st === "s").length;
+  const zL = zeroOpenDedup.filter((r) => r.st === "l").length;
   document.getElementById("zeroOpen").innerHTML =
     `<h3 style="margin:14px 0 8px;font-size:16px">Who never opened a commission screen — active seller or gone?</h3>` +
     `<div class="rep-apps">` +
-      `<div class="rep-kpi"><div class="l">Zero commission-screen opens</div><div class="v">${zeroOpen.length}</div><div class="d" style="color:var(--muted-foreground)">of ${DATA.agents.length} tracked agents</div></div>` +
+      `<div class="rep-kpi"><div class="l">Zero commission-screen opens</div><div class="v">${zeroOpenDedup.length}</div><div class="d" style="color:var(--muted-foreground)">of ${new Set(DATA.agents.map((x) => x.agent_name.trim().toLowerCase())).size} people tracked agents</div></div>` +
       `<div class="rep-kpi"><div class="l">Still active — order ≤ 30 days</div><div class="v">${zA}</div><div class="d" style="color:var(--muted-foreground)">adoption gap, not a people gap</div></div>` +
       `<div class="rep-kpi"><div class="l">Slipping — 31–60 days</div><div class="v">${zS}</div><div class="d" style="color:var(--muted-foreground)">intervene this week</div></div>` +
       `<div class="rep-kpi"><div class="l">Likely left — &gt; 60 days</div><div class="v">${zL}</div><div class="d" style="color:var(--muted-foreground)">roster / device cleanup</div></div>` +
     `</div>` +
     `<div class="unlock-tbl" style="margin-top:12px"><table><thead><tr><th>Agent</th><th>Channel</th><th>Governorate</th><th>Last order</th><th class="num">Days since</th><th>Status</th></tr></thead><tbody>` +
-    (zeroOpen.length
-      ? zeroOpen.map((r) =>
-          `<tr><td><b>${r.a.agent_name}</b></td><td>${chLabel(r.a.agent_type)}</td><td>${(r.a.governorates ?? []).length ? r.a.governorates.join(", ") : "Other"}</td>` +
+    (zeroOpenDedup.length
+      ? zeroOpenDedup.map((r) =>
+          `<tr><td><b>${r.a.agent_name}</b></td><td>${chLabel(r.a.agent_type)}</td><td>${(r.a.governorates ?? []).length ? r.a.governorates.map((g) => GOV_EN[g] ?? g).join(", ") : "Other"}</td>` +
           `<td>${r.last}</td><td class="num">${r.days}</td><td><span class="st ${r.st}">${r.stLabel}</span></td></tr>`
         ).join("")
       : `<tr><td colspan="6">Every tracked agent opened a commission screen at least once.</td></tr>`) +
@@ -1759,7 +1766,7 @@ function renderReportInner() {
   const recos = [
     {
       t: `Follow up with the ${zA + zS} agents who never opened a commission screen and are still active.`,
-      problem: `Of ${DATA.agents.length} tracked agents, ${zeroOpen.length} have <b>zero</b> commission-screen opens. ${zA} of them placed an order within the last 30 days (still selling — just not using the feature), ${zS} are 31–60 days without activity, and ${zL} look like leavers. Names, last orders and statuses are in the table above.`,
+      problem: `Of ${new Set(DATA.agents.map((x) => x.agent_name.trim().toLowerCase())).size} tracked people, ${zeroOpenDedup.length} have <b>zero</b> commission-screen opens. ${zA} of them placed an order within the last 30 days (still selling — just not using the feature), ${zS} are 31–60 days without activity, and ${zL} look like leavers. Names, last orders and statuses are in the table above.`,
       why: `The card can only motivate agents who see it. An active seller who never opens the screen gets zero benefit from the feature — and every "never unlocked" agent in the revenue comparison is partly a <b>visibility failure</b>, not a performance failure. Before any coaching program, we need to know who can actually be reached.`,
       solution: `Split the list into two actions. <b>(1) Adoption:</b> each supervisor sits with their active zero-open agents, opens the commission screen together once, and shows the agent their own 70% bar. <b>(2) Hygiene:</b> send the ${zL} likely-left names to HR/ops to confirm, then clean the roster and the CashVan device list.`,
       when: `Adoption sessions <b>this week</b> (before the month-end push, while there's still time to move November). Roster confirmations in the next weekly ops meeting.`,
