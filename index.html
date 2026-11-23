@@ -461,6 +461,17 @@
   }
   .ev.strong { border: 1px solid color-mix(in oklab, var(--success) 55%, transparent); color: var(--success); background: color-mix(in oklab, var(--success) 8%, white); }
   .ev.check { border: 1px solid color-mix(in oklab, var(--warning) 60%, transparent); color: color-mix(in oklab, var(--warning) 70%, black); background: color-mix(in oklab, var(--warning) 10%, white); }
+  .reco .facts { margin: 10px 0 4px; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); overflow: hidden; }
+  .reco .facts > div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 8px 12px; border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent); font-size: 12.5px; line-height: 1.6; }
+  .reco .facts > div:nth-child(odd) { background: color-mix(in oklab, var(--muted) 30%, transparent); }
+  .reco .facts > div:last-child { border-bottom: none; }
+  .reco .facts .k { font-weight: 600; color: var(--muted-foreground); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 2px; }
+  .reco .facts .v { color: var(--foreground); }
+  .reco .facts .v b { font-weight: 600; }
+  .st { display: inline-flex; border-radius: 9999px; padding: 2px 9px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+  .st.a { border: 1px solid color-mix(in oklab, var(--success) 55%, transparent); color: var(--success); background: color-mix(in oklab, var(--success) 8%, white); }
+  .st.s { border: 1px solid color-mix(in oklab, var(--warning) 60%, transparent); color: color-mix(in oklab, var(--warning) 70%, black); background: color-mix(in oklab, var(--warning) 10%, white); }
+  .st.l { border: 1px solid color-mix(in oklab, var(--danger) 55%, transparent); color: var(--danger); background: color-mix(in oklab, var(--danger) 8%, white); }
   .rep-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
   .rep-foot { border-top: 1px solid var(--border); margin-top: 30px; padding-top: 14px; font-size: 12px; color: var(--muted-foreground); line-height: 1.7; }
   .hidden-view { display: none !important; }
@@ -737,7 +748,8 @@
     <div class="rep-section">
       <h2>8 · What could we do next?</h2>
       <p class="lede" id="recoLede">…</p>
-      <div id="recoList"></div>
+      <div id="zeroOpen"></div>
+      <div id="recoList" style="margin-top:18px"></div>
       <p class="rep-note" id="recoAlso"></p>
       <p class="rep-note">The figures overlap (an agent can appear in more than one proposal), so don't add them up.</p>
     </div>
@@ -747,7 +759,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v4 · 23 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v5 · 24 Nov 2026</div>
   </section>
 </main>
 
@@ -1697,40 +1709,118 @@ function renderReportInner() {
     `<div class="mv"><table><thead><tr><th>#</th><th>Agent · why it moved</th><th>Channel</th><th class="num">Before /mo</th><th class="num">After /mo</th><th class="num">Δ</th><th class="num">Taps</th><th class="num">Unlock day</th></tr></thead><tbody>` +
     movers.map((r, i) => moverRow(r, i + 1)).join("") + `</tbody></table></div>`;
 
-  // ════════ SECTION 7 — recommendations
+  // ════════ SECTION 8 — what could we do next (problem → why → solution → when → how)
   const launchCohort = continuing.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.sep != null);
   const lateOct = unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct >= 26);
   const unlockNow = unlockers.length, neverNow = continuing.length - unlockNow;
-  document.getElementById("recoLede").textContent = "Proposals to discuss, ranked by how they protect the OKR (faster target-hitting, more agents unlocking). Figures are rough and use the assumption shown.";
+  document.getElementById("recoLede").innerHTML =
+    "Every proposal below follows the same structure — <b>problem → why it matters → solution → when → how</b> — so each one can go straight into a sprint ticket. But first: the agents the feature never reached. A proposal can't be written for a name we haven't identified.";
+
+  // ── who never opened a commission screen — and are they still working?
+  const today0 = new Date();
+  const dayMs = 86400000;
+  const chLabel = (t) => (t === "sales_agent" ? "Sales" : t === "delivery_agent" ? "Fulfillment" : t === "telesales_agent" ? "Telesales" : t);
+  const zeroOpen = (DATA.agents ?? [])
+    .map((a) => {
+      const clicks = (a.monthly ?? []).reduce((s, m) => s + Number(m.clicks || 0), 0);
+      return { a, clicks, last: a.last_active ? String(a.last_active).slice(0, 10) : null };
+    })
+    .filter((r) => r.clicks === 0 && r.last)
+    .map((r) => {
+      const days = Math.max(0, Math.round((today0 - new Date(r.last + "T00:00:00")) / dayMs));
+      const st = days <= 30 ? "a" : days <= 60 ? "s" : "l";
+      return { ...r, days, st, stLabel: st === "a" ? "Active — feature gap" : st === "s" ? "Slipping — at risk" : "Inactive — likely left" };
+    })
+    .sort((x, y) => (x.st === y.st ? x.days - y.days : x.st.localeCompare(y.st)));
+  const zA = zeroOpen.filter((r) => r.st === "a").length;
+  const zS = zeroOpen.filter((r) => r.st === "s").length;
+  const zL = zeroOpen.filter((r) => r.st === "l").length;
+  document.getElementById("zeroOpen").innerHTML =
+    `<h3 style="margin:14px 0 8px;font-size:16px">Who never opened a commission screen — active seller or gone?</h3>` +
+    `<div class="rep-apps">` +
+      `<div class="rep-kpi"><div class="l">Zero commission-screen opens</div><div class="v">${zeroOpen.length}</div><div class="d" style="color:var(--muted-foreground)">of ${DATA.agents.length} tracked agents</div></div>` +
+      `<div class="rep-kpi"><div class="l">Still active — order ≤ 30 days</div><div class="v">${zA}</div><div class="d" style="color:var(--muted-foreground)">adoption gap, not a people gap</div></div>` +
+      `<div class="rep-kpi"><div class="l">Slipping — 31–60 days</div><div class="v">${zS}</div><div class="d" style="color:var(--muted-foreground)">intervene this week</div></div>` +
+      `<div class="rep-kpi"><div class="l">Likely left — &gt; 60 days</div><div class="v">${zL}</div><div class="d" style="color:var(--muted-foreground)">roster / device cleanup</div></div>` +
+    `</div>` +
+    `<div class="unlock-tbl" style="margin-top:12px"><table><thead><tr><th>Agent</th><th>Channel</th><th>Governorate</th><th>Last order</th><th class="num">Days since</th><th>Status</th></tr></thead><tbody>` +
+    (zeroOpen.length
+      ? zeroOpen.map((r) =>
+          `<tr><td><b>${r.a.agent_name}</b></td><td>${chLabel(r.a.agent_type)}</td><td>${(r.a.governorates ?? []).length ? r.a.governorates.join(", ") : "Other"}</td>` +
+          `<td>${r.last}</td><td class="num">${r.days}</td><td><span class="st ${r.st}">${r.stLabel}</span></td></tr>`
+        ).join("")
+      : `<tr><td colspan="6">Every tracked agent opened a commission screen at least once.</td></tr>`) +
+    `</tbody></table></div>` +
+    `<p class="rep-note">"Last order" = the agent's <b>last_active</b> date in the analytics data — the newest business date with any order, call, or fulfillment activity (data through 22 Nov). The 30/60-day split is a working rule, not an HR record: confirm leavers against the supervisor list before removing anyone.</p>`;
+
+  // ── the proposals themselves
+  const neverAvg = neverNow ? avg(continuing.filter((r) => r.cohort === "never").map((r) => r.aAvg)) : 0;
+  const unlockAvg = avg(unlockers.map((r) => r.aAvg));
   const recos = [
     {
+      t: `Follow up with the ${zA + zS} agents who never opened a commission screen and are still active.`,
+      problem: `Of ${DATA.agents.length} tracked agents, ${zeroOpen.length} have <b>zero</b> commission-screen opens. ${zA} of them placed an order within the last 30 days (still selling — just not using the feature), ${zS} are 31–60 days without activity, and ${zL} look like leavers. Names, last orders and statuses are in the table above.`,
+      why: `The card can only motivate agents who see it. An active seller who never opens the screen gets zero benefit from the feature — and every "never unlocked" agent in the revenue comparison is partly a <b>visibility failure</b>, not a performance failure. Before any coaching program, we need to know who can actually be reached.`,
+      solution: `Split the list into two actions. <b>(1) Adoption:</b> each supervisor sits with their active zero-open agents, opens the commission screen together once, and shows the agent their own 70% bar. <b>(2) Hygiene:</b> send the ${zL} likely-left names to HR/ops to confirm, then clean the roster and the CashVan device list.`,
+      when: `Adoption sessions <b>this week</b> (before the month-end push, while there's still time to move November). Roster confirmations in the next weekly ops meeting.`,
+      how: `Export the table above (it already carries name, channel, last order and status). Hand each supervisor only their own rows, with a 2-minute talk track: "this is your target, this is your 70% line, this is the money it unlocks." Re-check this table after one week — the "Active — feature gap" count should drop to zero.`,
+      badge: ["strong", "Strong evidence"],
+    },
+    {
       t: `Coach the ${neverNow} continuing agents who have never unlocked the commission.`,
-      w: `They average <b>${fmtEGP(neverNow ? avg(continuing.filter((r) => r.cohort === "never").map((r) => r.aAvg)) : 0)}</b> per month since launch vs <b>${fmtEGP(avg(unlockers.map((r) => r.aAvg)))}</b> for agents who unlocked. Closing even a quarter of that gap across the group is worth roughly <b>${fmtEGP(0.25 * neverNow * Math.max(avg(unlockers.map((r) => r.aAvg)) - avg(continuing.filter((r) => r.cohort === "never").map((r) => r.aAvg)), 0))}</b> a month.`,
+      problem: `${neverNow} continuing agents never crossed the 70% threshold. They average <b>${fmtEGP(neverAvg)}</b> per month since launch vs <b>${fmtEGP(unlockAvg)}</b> for agents who unlocked.`,
+      why: `That per-agent gap is the feature's biggest unrealized value. Closing even a quarter of it across the group is worth roughly <b>${fmtEGP(0.25 * neverNow * Math.max(unlockAvg - neverAvg, 0))}</b> a month.`,
+      solution: `A named coaching list with each agent's distance-to-70%, run by supervisors with the same talk track as the zero-open adoption sessions.`,
+      when: `Kick off with the December target cycle; review the list after 4 weeks.`,
+      how: `Take the unlock table (section 2) filtered to the "—" rows, rank by revenue gap vs their own before-average, and coach the top 10 first — biggest gaps move the number fastest.`,
       badge: ["strong", "Strong evidence"],
     },
     {
       t: `Pull the unlock moment a week earlier — ${lateOct.length} agents crossed 70% only after day 25 in October.`,
-      w: `The unlock bursts sit at month-end, so the motivation arrives when the month is nearly over. A supervisor check-in on any agent under 70% by <b>day 15</b> aims the push a week earlier — exactly what the feature was built for.`,
+      problem: `Unlock bursts cluster at month-end, so the motivation arrives when the month is nearly over and can't pull behavior forward within the same month.`,
+      why: `The feature was built to make agents push <b>sooner</b>. A day-25 unlock only rewards what already happened — it never gets the chance to change the month's outcome.`,
+      solution: `Supervisor check-in on any agent under 70% by <b>day 15</b> — a mid-month nudge while there's still runway.`,
+      when: `From the next month start; recurring on day 15 every month.`,
+      how: `A weekly "days-to-unlock" view inside the Presell PWA (already on the wishlist) gives supervisors the day-15 list automatically.`,
       badge: ["check", "Check first"],
     },
     {
-      t: `Bring the unlock mechanic to Tele-Sales and CashVan apps.`,
-      w: `Telesales agents opened their Commissions screen <b>1,625 times</b> and fulfillment agents tapped the commission tab <b>284 times</b> — but neither app shows the 70% progress card, so their unlock day can't be tracked and the motivation effect is untested there. Same pattern, three channels.`,
+      t: `Bring the unlock mechanic to the Tele-Sales and CashVan apps.`,
+      problem: `Telesales agents opened their Commissions screen <b>1,625 times</b> and fulfillment agents tapped the commission tab <b>284 times</b> — but neither app shows the 70% progress card, so their unlock day can't be tracked and the motivation effect is untested on 2 of 3 channels.`,
+      why: `Presell's per-agent lift (+11%) suggests real upside; the same pattern almost certainly transfers. Today those agents see their commission <b>after</b> the month — no mid-month pull.`,
+      solution: `Ship the progress card + unlock event to both apps, reusing the presell card spec.`,
+      when: `Next app release train (both apps report to the US Mixpanel zone, so the event wiring is one pattern).`,
+      how: `Add a <b>commission_unlocked</b> event in each app; this report will then pick up their unlock days automatically with zero extra reporting work.`,
       badge: ["strong", "Strong evidence"],
     },
     {
       t: `Give the feature a fair revenue verdict: December vs October, like-for-like.`,
-      w: `October is always the strongest month, so its +34% can't be credited to the card. December is the first month where seasonality doesn't excuse a drop. If December holds October's revenue behaviour, the feature keeps the benefit of the doubt; if it craters, the card wasn't the driver.`,
+      problem: `October's +34% can't be credited to the card — <b>October is always our strongest month</b>, so seasonality masks everything.`,
+      why: `December is the first month where seasonality doesn't excuse a drop. Deciding the feature's fate on an October comparison would be deciding it on noise.`,
+      solution: `Pre-commit to a like-for-like December-vs-October verdict <b>before</b> looking at December's numbers.`,
+      when: `January 1 review — no peeking before month-end.`,
+      how: `Same continuing-agent cohort, same revenue convention as this report. If December holds October's revenue behavior, the feature keeps the benefit of the doubt; if it craters, the card wasn't the driver.`,
       badge: ["check", "Check first"],
     },
     {
       t: `Confirm every October unlocker's payout actually landed.`,
-      w: `${unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct).length} agents unlocked in October — the celebration promised them money. One missed payout after an unlock kills the mechanic's credibility with the whole roster.`,
+      problem: `${unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct).length} agents unlocked in October — the celebration promised them money.`,
+      why: `One missed payout after an unlock kills the mechanic's credibility with the <b>whole roster</b>, not just the affected agent. Trust is the feature's only real asset.`,
+      solution: `Cross-check every October unlocker against actual commission payout records.`,
+      when: `Before the next unlock wave lands at the end of this month.`,
+      how: `Join the unlock list (section 2) with payout records; flag any name with an unlock but no payout; fix those cases and tell the agents it was fixed — the fix is the story agents will repeat to each other.`,
       badge: ["check", "Check first"],
     },
   ];
   document.getElementById("recoList").innerHTML = recos.map((r, i) =>
-    `<div class="reco"><div class="num">${i + 1}</div><div><h4>${r.t}</h4><p><b>Why:</b> ${r.w}</p><span class="ev ${r.badge[0]}">${r.badge[1]}</span></div></div>`
+    `<div class="reco"><div class="num">${i + 1}</div><div><h4>${r.t}</h4>` +
+    `<div class="facts">` +
+      `<div><div class="k">Problem</div><div class="v">${r.problem}</div></div>` +
+      `<div><div class="k">Why it matters</div><div class="v">${r.why}</div></div>` +
+      `<div><div class="k">Solution</div><div class="v">${r.solution}</div></div>` +
+      `<div><div class="k">When</div><div class="v">${r.when}</div></div>` +
+      `<div><div class="k">How</div><div class="v">${r.how}</div></div>` +
+    `</div><span class="ev ${r.badge[0]}">${r.badge[1]}</span></div></div>`
   ).join("");
   document.getElementById("recoAlso").innerHTML =
     `<b>Also worth a look (not sized):</b> 4 CashVan phones that tap the commission tab but don't match any current delivery agent (likely ex-staff — clean the device list); telesales agents have no governorate mapping yet (they show as "Other"); and a weekly "days-to-unlock" leaderboard inside the Presell PWA.`;
@@ -1743,7 +1833,7 @@ function renderReportInner() {
     `<b>Unlock day</b> = first day of a month where the Presell progress card showed <b>unlocked = true</b> — the app's own achievement number; Nov-1 flags reflect October's state and are excluded. ` +
     `Tele-Sales and CashVan apps don't emit an unlock event yet, so unlock days for those channels can't be reached. ` +
     `<b>Fulfillment quantities</b> = assigned vs delivered units from presentation.fulfillment_agent, joined to agents through the legacy roster. ` +
-    `Unlock history is fixed for past months; new months follow the runbook in insights/README.md.`;
+    `Unlock history is fixed for past months; new months follow the runbook in insights/README.md. <b>Last order</b> (section 8) = each agent’s <b>last_active</b> business date — the newest day with any order, call, or fulfillment activity across the analytics tables, through 22 Nov.`;
 
   repCharts.forEach((c) => c.resize());
 }
