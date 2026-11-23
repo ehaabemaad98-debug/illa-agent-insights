@@ -815,12 +815,12 @@ const SEG = () => SEGMENTS[filters.segment] ?? SEGMENTS.field;
 
 /* ── CT avatar palette (SalesCharts.avatarColor) per governorate ── */
 const GOV_COLOR = {
-  "Cairo": "oklch(0.7 0.14 250)",
-  "Giza": "oklch(0.7 0.15 145)",
-  "Alexandria": "oklch(0.72 0.16 320)",
-  "Beheira": "oklch(0.75 0.14 80)",
+  "Cairo": "rgb(83,163,242)",
+  "Giza": "rgb(91,182,97)",
+  "Alexandria": "rgb(208,128,226)",
+  "Beheira": "rgb(220,163,49)",
 };
-const FALLBACK_COLOR = "oklch(0.68 0.15 200)";
+const FALLBACK_COLOR = "rgb(0,178,189)";
 const govColor = (g) => GOV_COLOR[g] ?? FALLBACK_COLOR;
 
 const GOV_EN = {
@@ -855,7 +855,7 @@ const fmtMonth = (ym) => new Date(ym + "-01T00:00:00Z").toLocaleString("en-GB", 
 const monthBefore = (monthIso) => { const d = new Date(monthIso.slice(0, 7) + "-01T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString().slice(0, 7); };
 const initials = (name) => name.split(" ").filter(Boolean).map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 function avatarColor(name) {
-  const palette = ["oklch(0.72 0.15 30)", "oklch(0.7 0.15 145)", "oklch(0.7 0.14 250)", "oklch(0.72 0.16 320)", "oklch(0.75 0.14 80)", "oklch(0.68 0.15 200)"];
+  const palette = ["rgb(244,124,107)", "rgb(91,182,97)", "rgb(83,163,242)", "rgb(208,128,226)", "rgb(220,163,49)", "rgb(0,178,189)"];
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
   return palette[h % palette.length];
@@ -918,7 +918,7 @@ function pearson(pts) {
   for (const [x, y] of pts) { const dx = x - mx, dy = y - my; sxy += dx * dy; sxx += dx * dx; syy += dy * dy; }
   return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
 }
-const axisFont = { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12, color: "oklch(0.554 0.046 257.417)" };
+const axisFont = { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12, color: "rgb(98,116,142)" };
 
 /* ── scatter (Recharts conventions: horizontal-only border grid, muted axes,
       white radius-12 tooltip, kpi-palette series) ── */
@@ -949,21 +949,21 @@ function drawScatter() {
     grid: { left: 60, right: 24, top: 40, bottom: 44 },
     legend: {
       top: 2, left: 4, itemWidth: 9, itemHeight: 9, icon: "circle",
-      textStyle: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12, color: "oklch(0.554 0.046 257.417)" },
+      textStyle: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12, color: "rgb(98,116,142)" },
       data: Object.keys(GOV_COLOR).filter((g) => pts.some((p) => p.gov === g)),
     },
     tooltip: {
       confine: true,
-      backgroundColor: "oklch(1 0 0)",
-      borderColor: "oklch(0.929 0.013 255.508)",
+      backgroundColor: "rgb(255,255,255)",
+      borderColor: "rgb(226,232,240)",
       borderWidth: 1,
       borderRadius: 12,
       padding: 10,
-      textStyle: { color: "oklch(0.129 0.042 264.695)", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12 },
+      textStyle: { color: "rgb(2,6,24)", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 12 },
       extraCssText: "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);",
       formatter: (p) => {
         const r = p.data.raw, seg = SEG();
-        return `<b>${p.name}</b> <span style="color:oklch(0.554 0.046 257.417)">· ${r.gov}</span><br/>` +
+        return `<b>${p.name}</b> <span style="color:rgb(98,116,142)">· ${r.gov}</span><br/>` +
           `${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>` +
           `${seg.utilShort}: <b>${fmtInt(r.clicks)}</b> · ${seg.ordersLbl}: ${fmtInt(r.orders)} · ${seg.visitsLbl}: ${fmtInt(r.visits)}<br/>` +
           `<span style="color:var(--brand)">click to open monthly story</span>`;
@@ -974,7 +974,7 @@ function drawScatter() {
       nameGap: 28, min: showLog ? 1 : 0, max: showLog ? undefined : Math.ceil(maxI * 1.06),
       nameTextStyle: { ...axisFont },
       axisLabel: { ...axisFont, formatter: (v) => fmtEGP(v) },
-      axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } },
+      axisLine: { lineStyle: { color: "rgb(226,232,240)" } },
       axisTick: { show: false },
       splitLine: { show: false },
     },
@@ -985,15 +985,15 @@ function drawScatter() {
       axisLabel: { ...axisFont, formatter: (v) => fmtInt(v) },
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" }, show: true },
+      splitLine: { lineStyle: { color: "rgb(226,232,240)" }, show: true },
     },
     series: [{
       type: "scatter", data: pts, symbolSize: 13,
       emphasis: { focus: "self", scale: 1.5 },
       markLine: pts.length > 2 ? {
         silent: true, symbol: "none", animation: false,
-        lineStyle: { color: "oklch(0.929 0.013 255.508)", type: "dashed", width: 1 },
-        label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, color: "oklch(0.554 0.046 257.417)", formatter: (p) => "median " + fmtEGP(p.value) },
+        lineStyle: { color: "rgb(226,232,240)", type: "dashed", width: 1 },
+        label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, color: "rgb(98,116,142)", formatter: (p) => "median " + fmtEGP(p.value) },
         data: [{ yAxis: medC }, { xAxis: medI }],
       } : undefined,
       markArea: pts.length > 2 ? {
@@ -1191,26 +1191,26 @@ function openDrawer(agentId) {
   const imp = row.months.map((m) => Math.round(Number(m.impact)));
   const clk = row.months.map((m) => Number(m.clicks));
   const grid = { left: 54, right: 16, top: 24, bottom: 26 };
-  const catAxis = { type: "category", data: labels, axisLabel: { ...axisFont, fontSize: 11 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } };
+  const catAxis = { type: "category", data: labels, axisLabel: { ...axisFont, fontSize: 11 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } };
   dChartI.setOption({
     animation: false, grid,
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (val) => fmtEGP(val) + " EGP" },
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, valueFormatter: (val) => fmtEGP(val) + " EGP" },
     xAxis: catAxis,
-    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtEGP }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
     series: [{
       type: "bar", data: imp, barMaxWidth: 30,
-      itemStyle: { color: "oklch(0.55 0.09 210)", borderRadius: [4, 4, 0, 0] },
-      label: { show: labels.length <= 14, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "oklch(0.554 0.046 257.417)", formatter: (p) => fmtEGP(p.value) },
+      itemStyle: { color: "rgb(23,127,142)", borderRadius: [4, 4, 0, 0] },
+      label: { show: labels.length <= 14, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "rgb(98,116,142)", formatter: (p) => fmtEGP(p.value) },
     }],
   }, { notMerge: true });
   dChartC.setOption({
     animation: false, grid: { ...grid, left: 40 },
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (val) => fmtInt(val) + " taps" },
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, valueFormatter: (val) => fmtInt(val) + " taps" },
     xAxis: catAxis,
-    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, minInterval: 1 },
+    yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } }, minInterval: 1 },
     series: [{
       type: "line", data: clk, smooth: false, symbol: "circle", symbolSize: 7,
-      lineStyle: { color: "oklch(0.62 0.18 295)", width: 3 }, itemStyle: { color: "oklch(0.62 0.18 295)" },
+      lineStyle: { color: "rgb(144,106,229)", width: 3 }, itemStyle: { color: "rgb(144,106,229)" },
     }],
   }, { notMerge: true });
 
@@ -1463,8 +1463,8 @@ function renderReportInner() {
     grid: { left: 56, right: 20, top: 44, bottom: 30 },
     legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Sales (Presell PWA)", "Telesales", "Fulfillment (CashVan)"] },
     tooltip: {
-      trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12,
-      textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" },
+      trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12,
+      textStyle: { fontSize: 12, color: "rgb(2,6,24)" },
       formatter: (ps) => {
         let out = `<b>${ps[0].axisValue}</b><br/>`;
         for (const p of ps) {
@@ -1477,12 +1477,12 @@ function renderReportInner() {
         return out;
       },
     },
-    xAxis: { type: "category", data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    xAxis: { type: "category", data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
     series: [
-      { name: "Sales (Presell PWA)", type: "line", data: PRESELL_VIEWS.map((v, i) => ({ value: v, agents: PRESELL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.55 0.09 210)" }, itemStyle: { color: "oklch(0.55 0.09 210)" } },
-      { name: "Telesales", type: "line", data: TELE_VIEWS.map((v, i) => ({ value: v, agents: TELE_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.62 0.18 295)" }, itemStyle: { color: "oklch(0.62 0.18 295)" } },
-      { name: "Fulfillment (CashVan)", type: "line", data: [...Array(61).fill(null), ...FUL_DAILY.map((v, i) => ({ value: v, agents: FUL_AGENTS[i] }))], smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.75 0.16 70)" }, itemStyle: { color: "oklch(0.75 0.16 70)" } },
+      { name: "Sales (Presell PWA)", type: "line", data: PRESELL_VIEWS.map((v, i) => ({ value: v, agents: PRESELL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(23,127,142)" }, itemStyle: { color: "rgb(23,127,142)" } },
+      { name: "Telesales", type: "line", data: TELE_VIEWS.map((v, i) => ({ value: v, agents: TELE_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(144,106,229)" }, itemStyle: { color: "rgb(144,106,229)" } },
+      { name: "Fulfillment (CashVan)", type: "line", data: [...Array(61).fill(null), ...FUL_DAILY.map((v, i) => ({ value: v, agents: FUL_AGENTS[i] }))], smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(237,153,14)" }, itemStyle: { color: "rgb(237,153,14)" } },
     ],
   }, { notMerge: true });
   document.getElementById("dailyLede").innerHTML =
@@ -1537,10 +1537,10 @@ function renderReportInner() {
   bh.setOption({
     animation: false,
     grid: { left: 36, right: 12, top: 26, bottom: 26 },
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, formatter: (ps) => "Day " + ps[0].axisValue + ": <b>" + ps[0].value + "</b> agent(s) unlocked" },
-    xAxis: { type: "category", data: histDays.map(String), axisLabel: { ...axisFont, fontSize: 10, interval: 2 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", minInterval: 1, axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
-    series: [{ type: "bar", data: histDays.map((d) => hist[d] ?? 0), barMaxWidth: 14, itemStyle: { color: "oklch(0.62 0.16 165)", borderRadius: [2, 2, 0, 0] } }],
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, formatter: (ps) => "Day " + ps[0].axisValue + ": <b>" + ps[0].value + "</b> agent(s) unlocked" },
+    xAxis: { type: "category", data: histDays.map(String), axisLabel: { ...axisFont, fontSize: 10, interval: 2 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", minInterval: 1, axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+    series: [{ type: "bar", data: histDays.map((d) => hist[d] ?? 0), barMaxWidth: 14, itemStyle: { color: "rgb(0,163,109)", borderRadius: [2, 2, 0, 0] } }],
   }, { notMerge: true });
 
   // aligned curve: avg views/day at offset relative to unlock day
@@ -1560,10 +1560,10 @@ function renderReportInner() {
   bc.setOption({
     animation: false,
     grid: { left: 40, right: 14, top: 26, bottom: 26 },
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, formatter: (ps) => "Day " + String(ps[0].axisValue).replace("d", "") + " vs unlock: <b>" + ps[0].value + "</b> views/day (avg agent)" },
-    xAxis: { type: "category", data: offsets.map((o) => (o === 0 ? "unlock" : (o > 0 ? "+" : "") + o)), axisLabel: { ...axisFont, fontSize: 10 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
-    series: [{ type: "line", data: curve, smooth: true, symbol: "circle", symbolSize: 7, lineStyle: { color: "oklch(0.62 0.18 295)", width: 3 }, itemStyle: { color: "oklch(0.62 0.18 295)" }, markLine: { silent: true, symbol: "none", label: { show: false }, lineStyle: { color: "oklch(0.929 0.013 255.508)", type: "dashed" }, data: [{ xAxis: "unlock" }] } }],
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, formatter: (ps) => "Day " + String(ps[0].axisValue).replace("d", "") + " vs unlock: <b>" + ps[0].value + "</b> views/day (avg agent)" },
+    xAxis: { type: "category", data: offsets.map((o) => (o === 0 ? "unlock" : (o > 0 ? "+" : "") + o)), axisLabel: { ...axisFont, fontSize: 10 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+    series: [{ type: "line", data: curve, smooth: true, symbol: "circle", symbolSize: 7, lineStyle: { color: "rgb(144,106,229)", width: 3 }, itemStyle: { color: "rgb(144,106,229)" }, markLine: { silent: true, symbol: "none", label: { show: false }, lineStyle: { color: "rgb(226,232,240)", type: "dashed" }, data: [{ xAxis: "unlock" }] } }],
   }, { notMerge: true });
 
   const improved = behUnlockers.filter((b) => b.improved).length;
@@ -1604,18 +1604,18 @@ function renderReportInner() {
   wk.setOption({
     animation: false,
     grid: { left: 60, right: 20, top: 30, bottom: 30 },
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
-    xAxis: { type: "category", data: monthWindows.map((w) => w.lbl.replace(" · release week", "")), axisLabel: { ...axisFont, fontSize: 10, interval: 0 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
+    xAxis: { type: "category", data: monthWindows.map((w) => w.lbl.replace(" · release week", "")), axisLabel: { ...axisFont, fontSize: 10, interval: 0 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtEGP }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
     series: [{
       type: "bar",
-      data: weekVals.map((v, i) => ({ value: v, itemStyle: { color: i === 2 ? "oklch(0.62 0.16 165)" : i < 2 ? "oklch(0.75 0.03 220)" : "oklch(0.55 0.09 210)", borderRadius: [5, 5, 0, 0] } })),
+      data: weekVals.map((v, i) => ({ value: v, itemStyle: { color: i === 2 ? "rgb(0,163,109)" : i < 2 ? "rgb(154,179,187)" : "rgb(23,127,142)", borderRadius: [5, 5, 0, 0] } })),
       barMaxWidth: 50,
-      label: { show: true, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "oklch(0.35 0.05 250)", formatter: (p) => fmtEGP(p.value) },
+      label: { show: true, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "rgb(38,60,84)", formatter: (p) => fmtEGP(p.value) },
       markLine: {
         silent: true, symbol: "none", animation: false,
         label: { show: false },
-        data: [{ yAxis: (weekVals[0] + weekVals[1]) / 2, lineStyle: { color: "oklch(0.554 0.046 257.417)", type: "dashed", width: 1 }, label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "oklch(0.554 0.046 257.417)", formatter: "pre-feature week avg " + fmtEGP((weekVals[0] + weekVals[1]) / 2), position: "insideEndTop" } }],
+        data: [{ yAxis: (weekVals[0] + weekVals[1]) / 2, lineStyle: { color: "rgb(98,116,142)", type: "dashed", width: 1 }, label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "rgb(98,116,142)", formatter: "pre-feature week avg " + fmtEGP((weekVals[0] + weekVals[1]) / 2), position: "insideEndTop" } }],
       },
     }],
   }, { notMerge: true });
@@ -1641,13 +1641,13 @@ function renderReportInner() {
     animation: false,
     grid: { left: 60, right: 20, top: 40, bottom: 28 },
     legend: { top: 0, left: 4, itemWidth: 9, itemHeight: 9, icon: "circle", textStyle: { ...axisFont }, data: ["Sales (Presell)", "Telesales", "Fulfillment (CashVan)"] },
-    tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtInt(v) + " views/taps" },
-    xAxis: { type: "category", data: ["Sep", "Oct", "Nov (to 22nd)"], axisLabel: { ...axisFont }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, valueFormatter: (v) => fmtInt(v) + " views/taps" },
+    xAxis: { type: "category", data: ["Sep", "Oct", "Nov (to 22nd)"], axisLabel: { ...axisFont }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
     series: [
-      { name: "Sales (Presell)", type: "bar", data: [190, 4522, 5913], barMaxWidth: 34, itemStyle: { color: "oklch(0.55 0.09 210)", borderRadius: [4, 4, 0, 0] } },
-      { name: "Telesales", type: "bar", data: [149, 1034, 444], barMaxWidth: 34, itemStyle: { color: "oklch(0.62 0.18 295)", borderRadius: [4, 4, 0, 0] } },
-      { name: "Fulfillment (CashVan)", type: "bar", data: [null, null, 284], barMaxWidth: 34, itemStyle: { color: "oklch(0.75 0.16 70)", borderRadius: [4, 4, 0, 0] } },
+      { name: "Sales (Presell)", type: "bar", data: [190, 4522, 5913], barMaxWidth: 34, itemStyle: { color: "rgb(23,127,142)", borderRadius: [4, 4, 0, 0] } },
+      { name: "Telesales", type: "bar", data: [149, 1034, 444], barMaxWidth: 34, itemStyle: { color: "rgb(144,106,229)", borderRadius: [4, 4, 0, 0] } },
+      { name: "Fulfillment (CashVan)", type: "bar", data: [null, null, 284], barMaxWidth: 34, itemStyle: { color: "rgb(237,153,14)", borderRadius: [4, 4, 0, 0] } },
     ],
   }, { notMerge: true });
   document.getElementById("engSales").innerHTML = [
