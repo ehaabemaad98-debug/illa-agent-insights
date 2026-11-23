@@ -310,6 +310,19 @@
     font-size: 9px; font-weight: 600; color: #fff; margin-right: 10px; vertical-align: middle;
   }
 
+
+  /* section 7 movers: break out of the 900px report column to full screen */
+  #reportView .rep-movers {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  #reportView .rep-movers .mv { border-radius: 0; }
+  html, body { overflow-x: clip; }
   /* ── drawer ──────────────────────────────────────────────────────────── */
   #drawer {
     position: fixed; top: 0; right: 0; height: 100dvh; width: min(540px, 100vw);
