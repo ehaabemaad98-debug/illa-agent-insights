@@ -944,7 +944,7 @@ function drawScatter() {
   const maxI = Math.max(1, ...impacts), maxC = Math.max(1, ...clicks);
 
   chart.setOption({
-    animation: !reducedMotion,
+    animation: false,
     animationDuration: 600,
     grid: { left: 60, right: 24, top: 40, bottom: 44 },
     legend: {
@@ -1193,7 +1193,7 @@ function openDrawer(agentId) {
   const grid = { left: 54, right: 16, top: 24, bottom: 26 };
   const catAxis = { type: "category", data: labels, axisLabel: { ...axisFont, fontSize: 11 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } };
   dChartI.setOption({
-    animation: !reducedMotion, grid,
+    animation: false, grid,
     tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (val) => fmtEGP(val) + " EGP" },
     xAxis: catAxis,
     yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtEGP }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } } },
@@ -1204,7 +1204,7 @@ function openDrawer(agentId) {
     }],
   }, { notMerge: true });
   dChartC.setOption({
-    animation: !reducedMotion, grid: { ...grid, left: 40 },
+    animation: false, grid: { ...grid, left: 40 },
     tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (val) => fmtInt(val) + " taps" },
     xAxis: catAxis,
     yAxis: { type: "value", axisLabel: { ...axisFont, fontSize: 11, formatter: fmtInt }, splitLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, minInterval: 1 },
@@ -1407,6 +1407,11 @@ function renderReport() {
 }
 
 function renderReportInner() {
+  if (!DATA || !(DATA.agents ?? []).length) {
+    document.getElementById("repHeadline").textContent = "Report is not ready";
+    document.getElementById("repLede").innerHTML = "The data snapshot hasn't loaded yet. Press <b>Sync now</b> — or refresh the page — and open the report again.";
+    return;
+  }
   const li = (t) => `<li>${t}</li>`;
   const everUnlocked = Object.keys(UNLOCK_DAYS).length;
   const all = fieldAgents();
@@ -1454,7 +1459,7 @@ function renderReportInner() {
   mk("Sep", 30); mk("Oct", 31); mk("Nov", 22);
   const daily = repChart("repDaily");
   daily.setOption({
-    animation: !reducedMotion,
+    animation: false,
     grid: { left: 56, right: 20, top: 44, bottom: 30 },
     legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Sales (Presell PWA)", "Telesales", "Fulfillment (CashVan)"] },
     tooltip: {
@@ -1530,7 +1535,7 @@ function renderReportInner() {
   const histDays = Array.from({ length: 31 }, (_, i) => i + 1);
   const bh = repChart("repBehHist");
   bh.setOption({
-    animation: !reducedMotion,
+    animation: false,
     grid: { left: 36, right: 12, top: 26, bottom: 26 },
     tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, formatter: (ps) => "Day " + ps[0].axisValue + ": <b>" + ps[0].value + "</b> agent(s) unlocked" },
     xAxis: { type: "category", data: histDays.map(String), axisLabel: { ...axisFont, fontSize: 10, interval: 2 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
@@ -1553,7 +1558,7 @@ function renderReportInner() {
   });
   const bc = repChart("repBehCurve");
   bc.setOption({
-    animation: !reducedMotion,
+    animation: false,
     grid: { left: 40, right: 14, top: 26, bottom: 26 },
     tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, formatter: (ps) => "Day " + String(ps[0].axisValue).replace("d", "") + " vs unlock: <b>" + ps[0].value + "</b> views/day (avg agent)" },
     xAxis: { type: "category", data: offsets.map((o) => (o === 0 ? "unlock" : (o > 0 ? "+" : "") + o)), axisLabel: { ...axisFont, fontSize: 10 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
@@ -1597,7 +1602,7 @@ function renderReportInner() {
     `The release landed on <b>Sep 20</b> — inside September's last week. So the honest comparison is <b>week vs week</b>: the final week of July and August ran <b>before</b> any agent saw the card; the last week of September had <b>7 days</b> of it; October's last week was the <b>first full-feature week</b>; November 16–22 is the latest reading.`;
   const wk = repChart("repWeeks");
   wk.setOption({
-    animation: !reducedMotion,
+    animation: false,
     grid: { left: 60, right: 20, top: 30, bottom: 30 },
     tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
     xAxis: { type: "category", data: monthWindows.map((w) => w.lbl.replace(" · release week", "")), axisLabel: { ...axisFont, fontSize: 10, interval: 0 }, axisLine: { lineStyle: { color: "oklch(0.929 0.013 255.508)" } }, axisTick: { show: false } },
@@ -1633,7 +1638,7 @@ function renderReportInner() {
     `The same question answered per channel, from each app's own Mixpanel data. Where a month has no data, it says so plainly.`;
   const vc = repChart("repEngage");
   vc.setOption({
-    animation: !reducedMotion,
+    animation: false,
     grid: { left: 60, right: 20, top: 40, bottom: 28 },
     legend: { top: 0, left: 4, itemWidth: 9, itemHeight: 9, icon: "circle", textStyle: { ...axisFont }, data: ["Sales (Presell)", "Telesales", "Fulfillment (CashVan)"] },
     tooltip: { trigger: "axis", backgroundColor: "oklch(1 0 0)", borderColor: "oklch(0.929 0.013 255.508)", borderRadius: 12, textStyle: { fontSize: 12, color: "oklch(0.129 0.042 264.695)" }, valueFormatter: (v) => fmtInt(v) + " views/taps" },
