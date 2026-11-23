@@ -52,7 +52,7 @@
     --font-sans: "IBM Plex Sans Arabic", "Cairo", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; }
+  html, body { margin: 0; overflow-x: clip; }
   body {
     background: var(--background);
     color: var(--foreground);
@@ -315,15 +315,8 @@
   #reportView .rep-movers {
     display: grid;
     grid-template-columns: 1fr;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
   }
-  #reportView .rep-movers .mv { border-radius: 0; }
+  
   html, body { overflow-x: clip; }
   /* ── drawer ──────────────────────────────────────────────────────────── */
   #drawer {
@@ -395,7 +388,7 @@
   .view-nav button[aria-pressed="true"] { background: rgb(255 255 255 / 0.25); color: #fff; }
 
   /* ── report (editorial structure, CT styling) ────────────────────────── */
-  #reportView { max-width: 900px; margin: 0 auto; }
+  #reportView { max-width: none; width: calc(100vw - 64px); position: relative; left: 50%; transform: translateX(-50%); margin: 0; }
   .rep-eyebrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 8px 0 26px; }
   .rep-eyebrow .l { font-size: 13px; color: var(--muted-foreground); }
   .rep-eyebrow .l b { color: var(--foreground); font-weight: 600; }
