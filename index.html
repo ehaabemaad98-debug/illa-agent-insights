@@ -1442,7 +1442,7 @@ function renderReport() {
     series: [
       { name: "Sales (Presell PWA)", type: "line", data: PRESELL_VIEWS.map((v, i) => ({ value: v, agents: PRESELL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.55 0.09 210)" }, itemStyle: { color: "oklch(0.55 0.09 210)" } },
       { name: "Telesales", type: "line", data: TELE_VIEWS.map((v, i) => ({ value: v, agents: TELE_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.62 0.18 295)" }, itemStyle: { color: "oklch(0.62 0.18 295)" } },
-      { name: "Fulfillment (CashVan)", type: "line", data: FUL_DAILY.map((v, i) => ({ value: v, agents: FUL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.75 0.16 70)" }, itemStyle: { color: "oklch(0.75 0.16 70)" } },
+      { name: "Fulfillment (CashVan)", type: "line", data: [...Array(61).fill(null), ...FUL_DAILY.map((v, i) => ({ value: v, agents: FUL_AGENTS[i] }))], smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "oklch(0.75 0.16 70)" }, itemStyle: { color: "oklch(0.75 0.16 70)" } },
     ],
   }, { notMerge: true });
   document.getElementById("dailyLede").innerHTML =
