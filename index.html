@@ -1889,7 +1889,7 @@ function renderReportInner() {
     `<h3 style="margin:18px 0 8px;font-size:16px">October (final) — the last fully-played month</h3>` +
     `<div class="rep-apps">` +
       `<div class="rep-kpi"><div class="l">Unlocked</div><div class="v">${octHi.length}</div><div class="d" style="color:var(--muted-foreground)">of ${TGT_OCT.length} agents with a plan — bar is 70% of target</div></div>` +
-      `<div class="rep-kpi"><div class="l">Near miss</div><div class="v">${octNear.length}</div><div class="d" style="color:var(--muted-foreground)">50–70% — one good week away from the money</div></div>` +
+      `<div class="rep-kpi"><div class="l">Had a target — missed the bar</div><div class="v">${TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70).length}</div><div class="d" style="color:var(--muted-foreground)">closest 49.7% — nobody finished in the 50–70 band: the last-week push decides</div></div>` +
       `<div class="rep-kpi"><div class="l">Missed</div><div class="v">${octMiss.filter((r) => r[1]).length}</div><div class="d" style="color:var(--muted-foreground)">under 50% despite having a target</div></div>` +
       `<div class="rep-kpi"><div class="l">No target set</div><div class="v">${octNone.length}</div><div class="d" style="color:var(--muted-foreground)">couldn't play the game at all — process gap</div></div>` +
     `</div>` +
@@ -1923,7 +1923,7 @@ function renderReportInner() {
     { k: "l2", label: "Likely left the company (no activity > 60 days)", get: () => TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70 && (tgtDays(r[0]) ?? 999) > 60), note: "Their miss is a people gap — handle in the section 8 roster cleanup, not coaching." },
     { k: "s2", label: "Inactive this month (31–60 days)", get: () => TGT_OCT.filter((r) => { const d = tgtDays(r[0]); return r[4] < 70 && d != null && d > 30 && d <= 60; }), note: "Slipping out of the roster — intervene this week." },
     { k: "v", label: "Never opens the commission screen (visibility gap)", get: () => TGT_OCT.filter((r) => r[4] < 70 && tgtClicks(r[0]) === 0 && (tgtDays(r[0]) ?? 999) <= 30), note: "Selling without ever seeing their bar — the feature can't motivate what it can't reach." },
-    { k: "d", label: "Sharp drop vs their own October level", get: () => TGT_NOV.filter((r) => (octPct[r[0]] ?? 0) >= 50 && r[4] < (octPct[r[0]] ?? 0) * 0.5), note: "Was on pace in October, collapsed in November — route change, competition or personal; supervisor 1:1 to find out." },
+    { k: "d", label: "Running far below their own October pace", get: () => TGT_NOV.filter((r) => (octPct[r[0]] ?? 0) >= 50 && r[4] < (octPct[r[0]] ?? 0) * 0.5), note: "Mid-month signal, not a verdict: November bars were also raised (roster 42→33), and the final-week push is still pending. If the gap persists into December, it is a real decline — supervisor 1:1." },
     { k: "c", label: "Active but structurally under target", get: () => TGT_NOV.filter((r) => r[4] < 70 && (tgtDays(r[0]) ?? 999) <= 30 && tgtClicks(r[0]) > 0 && !((octPct[r[0]] ?? 0) >= 50 && r[4] < (octPct[r[0]] ?? 0) * 0.5)), note: "Working, opening the card, still short — conversion or route-quality problem, the hardest bucket." },
   ];
   document.getElementById("tgtWhy").innerHTML =
@@ -1942,11 +1942,11 @@ function renderReportInner() {
   const plans = [
     {
       t: `Pull the ${octNear.length + octMiss.filter((r) => (tgtDays(r[0]) ?? 999) <= 30).length} live non-achievers over the 70% line.`,
-      problem: `In October ${octNear.length} agents finished 50–70% (a week's push away) and ${octMiss.filter((r) => r[2] > 0).length} finished under 50% with a real target. In November everyone is mid-flight with the final week — where ${lateOct.length} of October's unlockers actually crossed — still to come.`,
+      problem: `In October ${TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70).length} agents with a real target finished under 70% — the closest at 49.7%, and nobody landed in the 50–70 band: the final-week push either lands or the month collapses. November is mid-flight with the same dynamic ahead — ${lateOct.length} of October's unlockers only crossed after day 25.`,
       why: `Near-miss agents are the cheapest wins in the whole system: they already sell at ~2/3 of target, so the gap is motivation cadence, not capability. Fixing the no-target process gap also un-blocks agents who are literally selling without being allowed to unlock.`,
       solution: `Three moves. <b>(1)</b> Supervisor deal with each near-miss agent: day-15 checkpoint, weekly pace vs their own target. <b>(2)</b> Sales-ops rule: <b>no agent starts a month without a target row</b> — the ${octNone.length} October cases must not repeat in December. <b>(3)</b> Inactive-month agents go through the section 8 list first (adoption vs leaver).`,
       when: `Target-rule fix before <b>Dec 1</b>; near-miss deals start day 1 of December with the day-15 checkpoint.`,
-      how: `From the October table: sort by "Achieved", take the 50–70% rows first, agree one weekly number per agent ("you need ${fmtEGP(200000)} a week"). Track the same table in December — success = near-miss count drops below ${Math.max(1, octNear.length - 2)}.`,
+      how: `From the October table: sort by "Achieved", coach the closest-to-70% rows first (49.7% leads), and agree one weekly number per agent ("you need ${fmtEGP(200000)} a week"). Track the same table in December — success = the under-70% count drops and a real 50–70% band appears mid-month.`,
       badge: ["strong", "Strong evidence"],
     },
     {
