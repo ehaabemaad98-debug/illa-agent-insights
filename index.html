@@ -461,6 +461,14 @@
   }
   .ev.strong { border: 1px solid color-mix(in oklab, var(--success) 55%, transparent); color: var(--success); background: color-mix(in oklab, var(--success) 8%, white); }
   .ev.check { border: 1px solid color-mix(in oklab, var(--warning) 60%, transparent); color: color-mix(in oklab, var(--warning) 70%, black); background: color-mix(in oklab, var(--warning) 10%, white); }
+  .unlock-tbl th.num, .unlock-tbl td.num { text-align: center; }
+  .unlock-tbl.tgt-tbl th { text-align: center; }
+  .unlock-tbl.tgt-tbl td { text-align: center; }
+  .unlock-tbl.tgt-tbl td:first-child, .unlock-tbl.tgt-tbl th:first-child { text-align: left; }
+  .unlock-tbl.tgt-tbl table { min-width: 1060px; }
+  .pct.up { color: var(--success); }
+  .pct.mid { color: color-mix(in oklab, var(--warning) 70%, black); }
+  .pct.down { color: var(--danger); }
   .reco .facts { margin: 10px 0 4px; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); overflow: hidden; }
   .reco .facts > div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 8px 12px; border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent); font-size: 12.5px; line-height: 1.6; }
   .reco .facts > div:nth-child(odd) { background: color-mix(in oklab, var(--muted) 30%, transparent); }
@@ -772,7 +780,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v6 · 24 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v7 · 24 Nov 2026</div>
   </section>
 </main>
 
@@ -1846,6 +1854,7 @@ function renderReportInner() {
     `<b>Also worth a look (not sized):</b> 4 CashVan phones that tap the commission tab but don't match any current delivery agent (likely ex-staff — clean the device list); telesales agents have no governorate mapping yet (they show as "Other"); and a weekly "days-to-unlock" leaderboard inside the Presell PWA.`;
 
   // ════════ SECTION 9 — target achievement (commission_payouts: Oct final, Nov live)
+  const TGT_SEP = [["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",500000,466629,93.3],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",700000,625024,89.3],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",1500000,1328153,88.5],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",400000,344817,86.2],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",250000,210242,84.1],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",500000,407026,81.4],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",500000,404913,81],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",900000,721719,80.2],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",900000,718142,79.8],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2000000,1525401,76.3],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",1500000,1141041,76.1],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",900000,657656,73.1],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",2000000,1446662,72.3],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",600000,432079,72],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",1500000,1078285,71.9],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",500000,359185,71.8],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",800000,571088,71.4],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",1500000,1068010,71.2],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",500000,353325,70.7],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",1500000,1056018,70.4],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",900000,609409,67.7],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",500000,337926,67.6],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",500000,319794,64],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",800000,502026,62.8],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1500000,855904,57.1],["11160fb3-1c36-4a34-841f-04f58554fe28","mohamed abdo abdul-samad",250000,137245,54.9],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,799510,53.3],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",700000,371418,53.1],["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",700000,362660,51.8],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",700000,354251,50.6],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",250000,117259,46.9],["15de431e-e5f5-4032-a519-2cde3b689e28","Magdy mohamed khodier",500000,187300,37.5],["a256a397-d23b-4eb2-bf49-f12743f6acd0","eslam magdy",250000,78540,31.4],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",500000,156890,31.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",1000000,236126,23.6],["7d05f2fd-3f69-47e9-8fa1-359ee0d284bd","moamen ayman mahmoud",0,1685,0],["87896ea4-03da-460a-bfa4-795bda5a6f31","Ans mohamed gaber",0,4320,0],["351432c2-c97d-44b6-bcda-395dad4157ae","Fawry Agent",0,15180,0],["18a66adb-972a-446d-92ac-990d1705c805","Mohamed shehata mohamed",0,33576,0],["3ccdc7cd-ea0d-4c81-b3c7-72cd2f8a4ada","Muhammed Ahmed Shawki",0,103873,0]];
   const TGT_OCT = [["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",550000,561892,102.2],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1250000,1259530,100.8],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",500000,474817,95],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",1000000,942261,94.2],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",980000,913007,93.2],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",1000000,923857,92.4],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",800000,738607,92.3],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",980000,896001,91.4],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2500000,2187136,87.5],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",890000,753909,84.7],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",2650000,2206765,83.3],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",2000000,1649275,82.5],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",2000000,1641890,82.1],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",890000,718153,80.7],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",1300000,1014429,78],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",980000,763631,77.9],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",400000,310020,77.5],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,1156851,77.1],["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",750000,565863,75.4],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",900000,675433,75],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",1000000,741336,74.1],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",2600000,1920454,73.9],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",3200000,2338365,73.1],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",2000000,1423005,71.2],["0231d65b-4234-469b-b9ee-391b06cabed7","Ahmed Mohamed Abdelrahman",750000,533059,71.1],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",1200000,852386,71],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",800000,567131,70.9],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",800000,397942,49.7],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",800000,266819,33.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",1000000,283387,28.3],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",800000,217076,27.1],["15de431e-e5f5-4032-a519-2cde3b689e28","Magdy mohamed khodier",1250000,162202,13],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",980000,0,0],["e4b9c24b-09ef-41d2-9642-49ae92bcdab9","Yoseef mohamed mohamed",0,0,0],["b1c12cd7-f3dd-4ac0-8062-66f1d6fee686","ABDALLAH GALAL",0,0,0],["87896ea4-03da-460a-bfa4-795bda5a6f31","Ans mohamed gaber",0,0,0],["351432c2-c97d-44b6-bcda-395dad4157ae","Fawry Agent",0,0,0],["18a66adb-972a-446d-92ac-990d1705c805","Mohamed shehata mohamed",0,0,0],["3ccdc7cd-ea0d-4c81-b3c7-72cd2f8a4ada","Muhammed Ahmed Shawki",0,0,0],["15338dce-4f0e-4b75-8969-c871ff535e25","Muhammed Mahmoud Sayed",0,0,0],["5ff1fffd-b981-4a8c-aaf5-f68a02427e59","Shehab Hussien Mohamed",0,0,0],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",0,283380,0]];
   const TGT_NOV = [["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",500000,198160,39.6],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",1000000,260143,26],["0231d65b-4234-469b-b9ee-391b06cabed7","Ahmed Mohamed Abdelrahman",1000000,224885,22.5],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",1000000,207717,20.8],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",1500000,278878,18.6],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",750000,137770,18.4],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",2000000,366294,18.3],["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",1000000,182805,18.3],["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",600000,109562,18.3],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",2000000,340621,17],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1500000,251417,16.8],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",1500000,237612,15.8],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",2500000,384577,15.4],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",2500000,370531,14.8],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,215212,14.3],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",800000,108519,13.6],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",1500000,201879,13.5],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",2500000,337293,13.5],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",1000000,128927,12.9],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",700000,80984,11.6],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",850000,94628,11.1],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",800000,83823,10.5],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",1500000,156618,10.4],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",850000,85886,10.1],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",2000000,194353,9.7],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",750000,71360,9.5],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",600000,51621,8.6],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",800000,59217,7.4],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",900000,66259,7.4],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",3000000,72632,2.4],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",1500000,25440,1.7],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",600000,2710,0.5],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",500000,0,0]];
   const fmtPct = (v) => (v == null ? "—" : (Math.round(v * 10) / 10) + "%");
@@ -1878,44 +1887,59 @@ function renderReportInner() {
       `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (section 8)</div></div>` +
     `</div>`;
 
-  // ── October (final) distribution + named table
+  // ── October (final) distribution summary
   const octHi = TGT_OCT.filter((r) => tgtGroup(r) === "hi");
   const octNear = TGT_OCT.filter((r) => tgtGroup(r) === "s");
   const octMiss = TGT_OCT.filter((r) => tgtGroup(r) === "l");
   const octNone = TGT_OCT.filter((r) => tgtGroup(r) === "n");
-  const octRows = [...TGT_OCT].sort((x, y) => y[4] - x[4]);
-  const octBadge = (g) => `<span class="st ${g}">${grpLabel[g]}</span>`;
-  document.getElementById("tgtDist").innerHTML =
-    `<h3 style="margin:18px 0 8px;font-size:16px">October (final) — the last fully-played month</h3>` +
-    `<div class="rep-apps">` +
-      `<div class="rep-kpi"><div class="l">Unlocked</div><div class="v">${octHi.length}</div><div class="d" style="color:var(--muted-foreground)">of ${TGT_OCT.length} agents with a plan — bar is 70% of target</div></div>` +
-      `<div class="rep-kpi"><div class="l">Had a target — missed the bar</div><div class="v">${TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70).length}</div><div class="d" style="color:var(--muted-foreground)">closest 49.7% — nobody finished in the 50–70 band: the last-week push decides</div></div>` +
-      `<div class="rep-kpi"><div class="l">Missed</div><div class="v">${octMiss.filter((r) => r[1]).length}</div><div class="d" style="color:var(--muted-foreground)">under 50% despite having a target</div></div>` +
-      `<div class="rep-kpi"><div class="l">No target set</div><div class="v">${octNone.length}</div><div class="d" style="color:var(--muted-foreground)">couldn't play the game at all — process gap</div></div>` +
-    `</div>` +
-    `<div class="unlock-tbl" style="margin-top:12px"><table><thead><tr><th>Agent</th><th class="num">Target</th><th class="num">Actual</th><th class="num">Achieved</th><th>Status</th></tr></thead><tbody>` +
-    octRows.map((r) =>
-      `<tr><td><b>${r[1]}</b></td><td class="num">${r[2] ? fmtEGP(r[2]) : "—"}</td><td class="num">${fmtEGP(r[3])}</td><td class="num"><b>${fmtPct(r[4])}</b></td><td>${octBadge(tgtGroup(r))}</td></tr>`
-    ).join("") +
-    `</tbody></table></div>` +
-    `<p class="rep-note">Watch <b>Mostafa kamel mohamed</b>: he sold <b>${fmtEGP(283380)}</b> in October but had <b>no target</b> — so he couldn't unlock anything. Selling without a target makes the feature invisible to exactly the people we want using it.</p>`;
 
-  // ── November (live through 22 Nov)
+  // ── ONE merged table: September | October | November straight from the commission plan
+  const mergedMap = new Map();
+  for (const [arr, key] of [[TGT_SEP, "sep"], [TGT_OCT, "oct"], [TGT_NOV, "nov"]])
+    for (const [id, name, tgt, act, pct] of arr) {
+      const m = mergedMap.get(id) ?? { id, name, sep: null, oct: null, nov: null };
+      m[key] = [tgt, act, pct];
+      mergedMap.set(id, m);
+    }
+  const TGT_ALL = [...mergedMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const tgtCell = (mArr, idx) => mArr
+    ? `<td class="num">${fmtEGP(mArr[idx])}</td>`
+    : `<td class="num" style="color:var(--muted-foreground)">—</td>`;
+  const pctCell = (mArr) => {
+    if (!mArr) return `<td class="num" style="color:var(--muted-foreground)">—</td>`;
+    if (!mArr[0]) return `<td class="num"><span class="st n">no target</span></td>`;
+    const cls = mArr[2] >= 70 ? "up" : mArr[2] >= 50 ? "mid" : "down";
+    return `<td class="num"><b class="pct ${cls}">${fmtPct(mArr[2])}</b></td>`;
+  };
+  document.getElementById("tgtDist").innerHTML =
+    `<h3 style="margin:18px 0 8px;font-size:16px">September → October → November — every agent, straight from the commission plan</h3>` +
+    `<div class="rep-apps">` +
+      `<div class="rep-kpi"><div class="l">September · unlocked</div><div class="v">${TGT_SEP.filter((r) => r[4] >= 70).length}</div><div class="d" style="color:var(--muted-foreground)">of ${TGT_SEP.length} — in only 11 days (card shipped Sep 20)</div></div>` +
+      `<div class="rep-kpi"><div class="l">October · unlocked</div><div class="v">${octHi.length}</div><div class="d" style="color:var(--muted-foreground)">of ${TGT_OCT.length} — first fully-played month</div></div>` +
+      `<div class="rep-kpi"><div class="l">October · missed or no target</div><div class="v">${octMiss.length + octNone.length}</div><div class="d" style="color:var(--muted-foreground)">${octMiss.filter((r) => r[2] > 0).length} under 70% with a target · ${octNone.length} with no target at all</div></div>` +
+      `<div class="rep-kpi"><div class="l">November · live (22 Nov)</div><div class="v">${fmtPct(Math.max(...TGT_NOV.map((r) => r[4])))}</div><div class="d" style="color:var(--muted-foreground)">current leader — month-end push still ahead</div></div>` +
+    `</div>` +
+    `<div class="unlock-tbl tgt-tbl" style="margin-top:12px"><table><thead><tr><th>Agent</th><th class="num">Sep target</th><th class="num">Sep achieved</th><th class="num">Sep %</th><th class="num">Oct target</th><th class="num">Oct achieved</th><th class="num">Oct %</th><th class="num">Nov target</th><th class="num">Nov achieved</th><th class="num">Nov %</th></tr></thead><tbody>` +
+    TGT_ALL.map((m) =>
+      `<tr><td><b>${m.name}</b></td>` +
+      tgtCell(m.sep, 0) + tgtCell(m.sep, 1) + pctCell(m.sep) +
+      tgtCell(m.oct, 0) + tgtCell(m.oct, 1) + pctCell(m.oct) +
+      tgtCell(m.nov, 0) + tgtCell(m.nov, 1) + pctCell(m.nov) +
+    `</tr>`).join("") +
+    `</tbody></table></div>` +
+    `<p class="rep-note">All targets, achieved values and percentages come straight from the commission plan (the engine's own records — not estimates). <b>September covered the full month but the card only shipped on Sep 20</b> — 20 agents still crossed 70% in the 11 days that followed. "No target" = the agent had no plan row that month, so the percentage could not exist — Mostafa kamel sold ${fmtEGP(283380)} in October with no target and couldn't unlock. Green ≥ 70% (unlocked), amber ≥ 50%, red below, "—" = no plan row that month.</p>`;
+
+  // ── November (live through 22 Nov) — status cards (full numbers live in the merged table)
   const novRows = [...TGT_NOV].sort((x, y) => y[4] - x[4]);
   const octPct = Object.fromEntries(TGT_OCT.map((r) => [r[0], r[4]]));
   document.getElementById("tgtNov").innerHTML =
     `<h3 style="margin:18px 0 8px;font-size:16px">November (live, through 22 Nov) — the month-end push is still ahead</h3>` +
     `<div class="rep-apps">` +
-      `<div class="rep-kpi"><div class="l">Agents with a live target</div><div class="v">${TGT_NOV.length}</div><div class="d" style="color:var(--muted-foreground)">9 fewer than October — check the missing list below</div></div>` +
+      `<div class="rep-kpi"><div class="l">Agents with a live target</div><div class="v">${TGT_NOV.length}</div><div class="d" style="color:var(--muted-foreground)">9 fewer than October — the missing names show "—" in the Nov columns above</div></div>` +
       `<div class="rep-kpi"><div class="l">Current leader</div><div class="v">${fmtPct(novRows[0][4])}</div><div class="d" style="color:var(--muted-foreground)">${novRows[0][1]} — the only agent above 25% so far</div></div>` +
       `<div class="rep-kpi"><div class="l">Nobody at 70% yet</div><div class="v">0</div><div class="d" style="color:var(--muted-foreground)">expected — ${lateOct.length} of October's unlockers crossed only after day 25</div></div>` +
       `<div class="rep-kpi"><div class="l">Median pace</div><div class="v">${fmtPct([...novRows].sort((a, b) => a[4] - b[4])[Math.floor(novRows.length / 2)][4])}</div><div class="d" style="color:var(--muted-foreground)">~73% of the month is gone — the gap must close in the final week</div></div>` +
-    `</div>` +
-    `<div class="unlock-tbl" style="margin-top:12px"><table><thead><tr><th>Agent</th><th class="num">Nov target</th><th class="num">Actual to date</th><th class="num">Achieved</th><th class="num">Oct final</th></tr></thead><tbody>` +
-    novRows.map((r) =>
-      `<tr><td><b>${r[1]}</b></td><td class="num">${fmtEGP(r[2])}</td><td class="num">${fmtEGP(r[3])}</td><td class="num"><b>${fmtPct(r[4])}</b></td><td class="num">${fmtPct(octPct[r[0]])}</td></tr>`
-    ).join("") +
-    `</tbody></table></div>`;
+    `</div>`;
 
   // ── why agents don't reach the target (data-driven buckets, computed from the roster)
   const whyBuckets = [
