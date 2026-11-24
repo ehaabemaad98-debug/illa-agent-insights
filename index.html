@@ -723,7 +723,7 @@
     </div>
 
     <div class="rep-section">
-      <h2>4 · Before vs after the Sep 20 release — the last week of each month</h2>
+      <h2>4 · Before vs after the Sep 20 release — full months, every channel</h2>
       <p class="lede" id="weekLede">…</p>
       <div class="rep-chart"><div id="repWeeks"></div></div>
       <div id="repWeeksTable" style="margin-top:10px"></div>
@@ -783,7 +783,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v9 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v10 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1485,7 +1485,7 @@ function renderReportInner() {
   document.getElementById("repLede").innerHTML =
     `The commission progress card shipped to the Presell PWA on <b>Sep 20</b> with one job: show every agent one number — <b>70% of target unlocks the commission</b> — and motivate them to get there sooner. ` +
     `This report tracks the feature across the three sales channels: <b>Sales (Presell PWA)</b>, <b>Telesales</b> and <b>Fulfillment (CashVan)</b>. ` +
-    `Since launch: <b>${everUnlocked} sales agents have unlocked</b>, the card has been opened <b>12,534 times</b> across the three apps, and revenue per continuing agent moved <b>${fmtEGP(beforeAvg)} → ${fmtEGP(afterAvg)}</b> (${upPct} — read with care: October is always our strongest month).`;
+    `Since launch: <b>${everUnlocked} sales agents have unlocked</b>, the card has been opened <b>12,534 times</b> across the three apps, and revenue per continuing agent moved <b>${fmtEGP(beforeAvg)} → ${fmtEGP(afterAvg)}</b> (and October — the card's first full month — was our best revenue month so far).`;
 
   document.getElementById("repStamp").textContent = `updated ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}, with data through 22 November`;
 
@@ -1769,62 +1769,65 @@ function renderReportInner() {
     "<b>App opens:</b> Mixpanel sessions aren't attributed per agent, so per-agent app-open counts can't be broken out — overall app sessions stayed stable at ~150–180/day across the whole period, and the per-agent card views above are the engagement proxy. " +
     "Computed from the daily views matrix (Sep 1 – Nov 22): before = days 1 → unlock-1, after = unlock day → month end, within the unlock month only.";
 
-  // ════════ SECTION 3 — last-week-of-month comparison around Sep 20
-  const monthWindows = [
-    { lbl: "Last week of Jul", start: 24, end: 30, mIdx: 0 },
-    { lbl: "Last week of Aug", start: 24, end: 30, mIdx: 1 },
-    { lbl: "Last week of Sep · release week", start: 23, end: 29, mIdx: 2 },
-    { lbl: "Last week of Oct", start: 24, end: 30, mIdx: 3 },
-    { lbl: "Nov 16–22 (latest)", start: 15, end: 21, mIdx: 4 },
+  // ════════ SECTION 3 — before vs after the Sep 20 release: FULL months, every channel ════════
+  const BEFORE_MS = ["2026-07", "2026-08"];
+  const AFTER_MS = ["2026-09", "2026-10", "2026-11"];
+  const AFTER_DIV = 2.73; // Sep + Oct + Nov prorated to 22/30 of a month
+  const m3Sum = (a, ms, k) => (a.monthly ?? []).filter((m) => ms.includes(m.month.slice(0, 7))).reduce((s, m) => s + Number(m[k] || 0), 0);
+  const CH3 = [
+    { key: "field", label: "Field sales", types: ["sales_agent"], k: "impact", unit: "EGP" },
+    { key: "telesales", label: "Telesales", types: ["telesales_agent"], k: "impact", unit: "EGP" },
+    { key: "fulfillment", label: "Fulfillment", types: ["delivery_agent"], k: "delivered", unit: "cartons" },
   ];
-  const monthStartIdx = [0, 31, 62, 92, 123];
-  const weekVals = monthWindows.map((w) => {
-    const base = monthStartIdx[w.mIdx];
-    let s = 0;
-    for (let i = w.start; i <= w.end; i++) s += DAILY_REV[base + i - 1] ?? 0;
-    return Math.round(s);
+  const chStats = CH3.map((c) => {
+    const agents = (DATA.agents ?? []).filter((a) => c.types.includes(a.agent_type));
+    const rows = agents.map((a) => {
+      const before = m3Sum(a, BEFORE_MS, c.k);
+      const after = m3Sum(a, AFTER_MS, c.k);
+      return { name: a.agent_name, bAvg: before / 2, aAvg: after / AFTER_DIV, before, after };
+    }).filter((r) => r.before > 0 && r.after > 0);
+    const improved = rows.filter((r) => r.aAvg > r.bAvg * 1.05).length;
+    const declined = rows.filter((r) => r.aAvg < r.bAvg * 0.95).length;
+    const flat = rows.length - improved - declined;
+    const bAvg = rows.length ? rows.reduce((s, r) => s + r.bAvg, 0) / rows.length : 0;
+    const aAvg = rows.length ? rows.reduce((s, r) => s + r.aAvg, 0) / rows.length : 0;
+    const change = bAvg ? Math.round(((aAvg - bAvg) / bAvg) * 100) : 0;
+    return { ...c, rows, improved, declined, flat, bAvg, aAvg, change };
   });
-  const fullMonth = [31, 31, 30, 31, 22];
-  const mtd = monthWindows.map((w) => {
-    const base = monthStartIdx[w.mIdx];
-    let s = 0;
-    for (let i = 0; i <= w.end; i++) s += DAILY_REV[base + i] ?? 0;
-    return Math.round(s);
-  });
-  document.getElementById("weekLede").innerHTML =
-    `The release landed on <b>Sep 20</b> — inside September's last week. So the honest comparison is <b>week vs week</b>: the final week of July and August ran <b>before</b> any agent saw the card; the last week of September had <b>7 days</b> of it; October's last week was the <b>first full-feature week</b>; November 16–22 is the latest reading.`;
-  const wk = repChart("repWeeks");
-  wk.setOption({
+  const fmtUnit = (v, unit) => (unit === "EGP" ? fmtEGP(v) : fmtInt(v) + " cartons");
+  // chart: one grid per channel, each with its own scale — Before gray vs After teal
+  const wc = repChart("repWeeks");
+  wc.setOption({
     animation: false,
-    grid: { left: 60, right: 20, top: 30, bottom: 30 },
-    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, valueFormatter: (v) => fmtEGP(v) + " EGP" },
-    xAxis: { type: "category", data: monthWindows.map((w) => w.lbl.replace(" · release week", "")), axisLabel: { ...axisFont, fontSize: 10, interval: 0 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtEGP }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
-    series: [{
-      type: "bar",
-      data: weekVals.map((v, i) => ({ value: v, itemStyle: { color: i === 2 ? "rgb(0,163,109)" : i < 2 ? "rgb(154,179,187)" : "rgb(23,127,142)", borderRadius: [5, 5, 0, 0] } })),
-      barMaxWidth: 50,
-      label: { show: true, position: "top", fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, fontWeight: 600, color: "rgb(38,60,84)", formatter: (p) => fmtEGP(p.value) },
-      markLine: {
-        silent: true, symbol: "none", animation: false,
-        label: { show: false },
-        data: [{ yAxis: (weekVals[0] + weekVals[1]) / 2, lineStyle: { color: "rgb(98,116,142)", type: "dashed", width: 1 }, label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 10, color: "rgb(98,116,142)", formatter: "pre-feature week avg " + fmtEGP((weekVals[0] + weekVals[1]) / 2), position: "insideEndTop" } }],
-      },
-    }],
+    legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Before (Jul + Aug)", "After (Sep – Nov 22)"] },
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, formatter: (ps) => {
+      const ch = chStats[ps[0].axisIndex] ?? {};
+      let out = `<b>${ch.label}</b> — avg per continuing agent / month<br/>`;
+      for (const p of ps) out += `<span style="color:${p.color}">■</span> ${p.seriesName}: <b>${ch.unit === "EGP" ? fmtEGP(p.value) : fmtInt(p.value)}</b> ${ch.unit}<br/>`;
+      return out;
+    } },
+    title: chStats.map((c, i) => ({ text: c.label + (c.unit === "cartons" ? " (cartons)" : ""), left: i === 0 ? "4%" : i === 1 ? "36%" : "68%", top: 26, textStyle: { ...axisFont, fontSize: 12, fontWeight: 600 } })),
+    grid: [{ left: 60, right: 10, top: 56, height: 180, width: "24%" }, { left: "36%", right: 10, top: 56, height: 180, width: "24%" }, { left: "68%", right: 10, top: 56, height: 180, width: "24%" }],
+    xAxis: chStats.map((c, i) => ({ type: "category", gridIndex: i, data: ["Before", "After"], axisLabel: { ...axisFont, fontSize: 10 }, axisTick: { show: false }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } } })),
+    yAxis: chStats.map((c, i) => ({ type: "value", gridIndex: i, axisLabel: { ...axisFont, fontSize: 9, formatter: (v) => fmtInt(v) }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } })),
+    series: chStats.flatMap((c, i) => [
+      { name: "Before (Jul + Aug)", type: "bar", xAxisIndex: i, yAxisIndex: i, data: [Math.round(c.bAvg), null], barWidth: "45%", itemStyle: { color: "rgb(154,179,187)", borderRadius: [3, 3, 0, 0] } },
+      { name: "After (Sep – Nov 22)", type: "bar", xAxisIndex: i, yAxisIndex: i, data: [null, Math.round(c.aAvg)], barWidth: "45%", itemStyle: { color: "rgb(23,127,142)", borderRadius: [3, 3, 0, 0] } },
+    ]),
   }, { notMerge: true });
-  const preAvg = (weekVals[0] + weekVals[1]) / 2;
+  const chLine = (c) => {
+    const sign = c.change >= 0 ? "+" : "";
+    const dir = c.change > 5 ? `<span class="pct up">${sign}${c.change}%</span>` : c.change < -5 ? `<span class="pct down">${c.change}%</span>` : `<span class="pct mid">${sign}${c.change}%</span>`;
+    return `<tr><td><b>${c.label}</b></td><td class="num">${c.rows.length}</td><td class="num">${fmtUnit(c.bAvg, c.unit)}</td><td class="num">${fmtUnit(c.aAvg, c.unit)}</td><td class="num"><b>${dir}</b></td><td class="num"><span class="pct up">${c.improved}</span></td><td class="num"><span class="pct down">${c.declined}</span></td><td class="num">${c.flat}</td></tr>`;
+  };
   document.getElementById("repWeeksTable").innerHTML =
-    `<table><thead><tr><th>Week</th><th class="num">Revenue (EGP)</th><th class="num">vs pre-feature avg</th><th class="num">Month-to-date total</th><th class="num">Week share</th></tr></thead><tbody>` +
-    monthWindows.map((w, i) => {
-      const dd = weekVals[i] - preAvg;
-      const pct = Math.round((dd / preAvg) * 100);
-      const share = Math.round((weekVals[i] / mtd[i]) * 100);
-      return `<tr><td>${w.lbl}</td><td class="num">${fmtEGP(weekVals[i])}</td>` +
-        `<td class="num" style="color:${dd >= 0 ? "var(--success)" : "var(--danger)"}">${dd >= 0 ? "+" : ""}${fmtEGP(dd)} (${pct >= 0 ? "+" : ""}${pct}%)</td>` +
-        `<td class="num">${fmtEGP(mtd[i])}</td><td class="num">${share}%</td></tr>`;
-    }).join("") + `</tbody></table>`;
+    `<div class="unlock-tbl"><table><thead><tr><th>Channel</th><th class="num">Continuing agents</th><th class="num">Before · avg / agent / month</th><th class="num">After · avg / agent / month</th><th class="num">Change</th><th class="num">Improved</th><th class="num">Declined</th><th class="num">Flat (±5%)</th></tr></thead><tbody>` +
+    chStats.map(chLine).join("") + `</tbody></table></div>`;
+  const f3 = chStats[0];
+  document.getElementById("weekLede").innerHTML =
+    `The full-month picture, every channel: for each <b>continuing agent</b> (had activity in both windows), the <b>before</b> average is Jul + Aug ÷ 2 and the <b>after</b> average is Sep + Oct + November ÷ ${AFTER_DIV} (November prorated to Nov 22). Field sales: <b>${f3.improved} of ${f3.rows.length} continuing agents improved</b> vs their own before-average (${f3.declined} declined, ${f3.flat} within ±5%) — and the same honest split is shown per channel below and in the chart. October was our <b>best revenue month so far</b> and the card's first full month — whether that's the feature or the market, this per-agent split is the evidence base, and the names behind it are in section 7.`;
   document.getElementById("weekNote").innerHTML =
-    `<b>Read with care:</b> revenue is up <b>+${Math.round(((weekVals[3] - preAvg) / preAvg) * 100)}%</b> in October's last week vs the pre-feature average — but <b>October is always our strongest month</b>, so part of that is season. The cleaner signal sits in section 4: <b>when</b> in the month agents push. Also note November 16–22 is a partial window — its number will grow as the month closes.`;
+    `<b>How to read this:</b> per-agent averages remove roster noise (leavers and joiners don't move these numbers). ±5% counts as flat so one good Friday can't fake a trend. Continuing-only means agents active in both windows — part-months never compare against full ones. Telesales and fulfillment have no commission card yet (their <b>plan-derived</b> crossings are in section 2), so their before/after reflects the channel's own momentum, not card adoption. November is prorated through Nov 22 and will grow as the month closes.`;
 
   // ════════ SECTION 4 — engagement per channel, three answers
   document.getElementById("engLede").innerHTML =
@@ -1983,11 +1986,11 @@ function renderReportInner() {
     },
     {
       t: `Give the feature a fair revenue verdict: December vs October, like-for-like.`,
-      problem: `October's +34% can't be credited to the card — <b>October is always our strongest month</b>, so seasonality masks everything.`,
-      why: `December is the first month where seasonality doesn't excuse a drop. Deciding the feature's fate on an October comparison would be deciding it on noise.`,
+      problem: `October was our <b>best revenue month so far</b> — and the card's first full month. The overlap is suggestive, not proof: market momentum could explain part or all of it.`,
+      why: `One strong month next to a launch is a hypothesis, not a verdict. December answers whether the level <b>repeats</b> with the card live — that repetition is the closest thing to evidence this setup can produce.`,
       solution: `Pre-commit to a like-for-like December-vs-October verdict <b>before</b> looking at December's numbers.`,
       when: `January 1 review — no peeking before month-end.`,
-      how: `Same continuing-agent cohort, same revenue convention as this report. If December holds October's revenue behavior, the feature keeps the benefit of the doubt; if it craters, the card wasn't the driver.`,
+      how: `Same continuing-agent cohort, same revenue convention as this report's section 3. If December holds October's behavior, the feature keeps the benefit of the doubt; if it craters, we look elsewhere — and either way the decision is made on data.`,
       badge: ["check", "Check first"],
     },
     {
