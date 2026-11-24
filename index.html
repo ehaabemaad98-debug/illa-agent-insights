@@ -432,7 +432,7 @@
   .mv .why { max-width: none; }
 
   .rep-chart { height: 300px; margin-top: 14px; }
-  #repTimeline, #repCohorts, #repPaceChart, #repViews, #repDaily, #repEngage, #repWeeks, #repBehHist, #repBehCurve { width: 100%; height: 100%; }
+  #repTimeline, #repCohorts, #repPaceChart, #repViews, #repDaily, #repEngage, #repEngWeeks, #repWeeks, #repBehHist, #repBehCurve { width: 100%; height: 100%; }
   .wf { margin-top: 18px; }
   .wf-row { display: grid; grid-template-columns: 210px 1fr 110px; align-items: center; gap: 12px; height: 40px; }
   .wf-row .lbl { font-size: 13px; color: var(--foreground); text-align: right; }
@@ -734,6 +734,8 @@
       <h2>5 · Did agents engage with the card more?</h2>
       <p class="lede" id="engLede">…</p>
       <div class="rep-chart" style="height:260px"><div id="repEngage"></div></div>
+      <h3 style="margin:16px 0 0;font-size:14px;font-weight:700">Weekly commission-screen opens by channel <span style="color:var(--muted-foreground);font-weight:500">(7-day buckets from Sep 1 · * = partial bucket)</span></h3>
+      <div class="rep-chart" style="height:300px"><div id="repEngWeeks"></div></div>
       <div class="rep-hh" style="margin-top:16px">
         <div><h3>Sales — Presell PWA</h3><ul id="engSales"></ul></div>
         <div><h3>Telesales — Tele-Sales App</h3><ul id="engTele"></ul></div>
@@ -783,7 +785,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v10 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v11 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1829,9 +1831,32 @@ function renderReportInner() {
   document.getElementById("weekNote").innerHTML =
     `<b>How to read this:</b> per-agent averages remove roster noise (leavers and joiners don't move these numbers). ±5% counts as flat so one good Friday can't fake a trend. Continuing-only means agents active in both windows — part-months never compare against full ones. Telesales and fulfillment have no commission card yet (their <b>plan-derived</b> crossings are in section 2), so their before/after reflects the channel's own momentum, not card adoption. November is prorated through Nov 22 and will grow as the month closes.`;
 
-  // ════════ SECTION 4 — engagement per channel, three answers
+  // ════════ SECTION 4 — engagement per channel: counts, weekly stack, who needs a push
+  // Presell EU extras (project 3854972, Sep 1 – Nov 22): celebration + popup events
+  const CELEB_TOTAL = 82, CELEB_UNIQ = 27, POPUP_V = 3833, POPUP_D = 3726;
+  const tot = (arr, pad) => arr.reduce((s, v, i) => s + ((pad && i < pad) ? 0 : (v ?? 0)), 0);
+  const activeZeroNow = (DATA.agents ?? []).filter((a) => {
+    const clicks = (a.monthly ?? []).reduce((s, m) => s + Number(m.clicks || 0), 0);
+    if (clicks > 0 || !a.last_active) return false;
+    return (new Date() - new Date(String(a.last_active).slice(0, 10) + "T00:00:00")) / 86400000 <= 30;
+  }).length;
+  const behImp = behUnlockers.filter((b) => b.improved);
+  const stoppedCount = behUnlockers.filter((b) => {
+    const row = BEHAVIOR_MATRIX.rows.find((r) => r[0] === b.id);
+    return row ? row.slice(76).reduce((s, v) => s + (v ?? 0), 0) === 0 : false;
+  }).length;
+  let heavyBefore = 0, heavyAfter = 0;
+  for (const b of behUnlockers) {
+    const row = BEHAVIOR_MATRIX.rows.find((r) => r[0] === b.id);
+    if (!row) continue;
+    const vals = row.slice(1);
+    const base = behMonths[b.mm].start;
+    vals.forEach((v, i) => {
+      if ((v ?? 0) >= 3) { if (i < base + b.D - 1) heavyBefore++; else if (i < base + behMonths[b.mm].len) heavyAfter++; }
+    });
+  }
   document.getElementById("engLede").innerHTML =
-    `The same question answered per channel, from each app's own Mixpanel data. Where a month has no data, it says so plainly.`;
+    `Two questions, one section: <b>did engagement rise after the unlock</b>, and <b>who needs a push now</b>. The bars are monthly opens per app; the weekly stack underneath shows the rhythm; the lists carry the counts. Extra signals from the Presell app: the <b>70% celebration fired ${CELEB_TOTAL} times for ${CELEB_UNIQ} agents</b>, and the update popup was opened ${fmtInt(POPUP_V)} times but dismissed ${fmtInt(POPUP_D)} (${Math.round((POPUP_D / POPUP_V) * 100)}%) — treat the popup as noise, not engagement.`;
   const vc = repChart("repEngage");
   vc.setOption({
     animation: false,
@@ -1846,17 +1871,51 @@ function renderReportInner() {
       { name: "Fulfillment (CashVan)", type: "bar", data: [null, null, 284], barMaxWidth: 34, itemStyle: { color: "rgb(237,153,14)", borderRadius: [4, 4, 0, 0] } },
     ],
   }, { notMerge: true });
+  // weekly rhythm: 7-day buckets from Sep 1, stacked by channel (last bucket = 6 days, partial)
+  const bLbl = ["Sep 1", "Sep 8", "Sep 15", "Sep 22", "Sep 29", "Oct 6", "Oct 13", "Oct 20", "Oct 27", "Nov 3", "Nov 10", "Nov 17*"];
+  const bSum = (arr, pad) => [...Array(12)].map((_, i) => {
+    let t2 = 0;
+    for (let j = i * 7; j < Math.min(i * 7 + 7, arr.length); j++) { if (pad && j < pad) continue; t2 += arr[j] ?? 0; }
+    return t2;
+  });
+  const wc2 = repChart("repEngWeeks");
+  wc2.setOption({
+    animation: false,
+    grid: { left: 60, right: 20, top: 40, bottom: 28 },
+    legend: { top: 0, left: 4, itemWidth: 9, itemHeight: 9, icon: "circle", textStyle: { ...axisFont }, data: ["Sales (Presell)", "Telesales", "Fulfillment (CashVan)"] },
+    tooltip: { trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12, textStyle: { fontSize: 12, color: "rgb(2,6,24)" }, valueFormatter: (v) => fmtInt(v) + " opens" },
+    xAxis: { type: "category", data: bLbl, axisLabel: { ...axisFont, fontSize: 9 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+    series: [
+      { name: "Sales (Presell)", type: "bar", stack: "wk", data: bSum(PRESELL_VIEWS), barMaxWidth: 40, itemStyle: { color: "rgb(23,127,142)" } },
+      { name: "Telesales", type: "bar", stack: "wk", data: bSum(TELE_VIEWS), barMaxWidth: 40, itemStyle: { color: "rgb(144,106,229)" } },
+      { name: "Fulfillment (CashVan)", type: "bar", stack: "wk", data: bSum(FUL_DAILY, 61), barMaxWidth: 40, itemStyle: { color: "rgb(237,153,14)" } },
+    ],
+  }, { notMerge: true });
+  const tLast7 = tot(TELE_VIEWS.slice(76));
+  const tUniqAvg = Math.round((TELE_AGENTS.slice(76).reduce((s, v) => s + v, 0) / 7) * 10) / 10;
+  const tZeroNov = (DATA.agents ?? []).filter((a) => a.agent_type === "telesales_agent" && ((a.monthly ?? []).find((m) => m.month.startsWith("2026-11"))?.clicks ?? 0) === 0).length;
+  const fulEver = (DATA.agents ?? []).filter((a) => a.agent_type === "delivery_agent" && (a.monthly ?? []).reduce((s, m) => s + Number(m.clicks || 0), 0) > 0).length;
+  const fulCrossedNow = FUL_UNLOCK.filter((r) => r[3]).length;
+  const fulFirstWeekNow = FUL_UNLOCK.filter((r) => r[3] && r[3] <= 7).length;
+  const fulPush = FUL_UNLOCK.length - fulCrossedNow;
+  const impPct = behUnlockers.length ? Math.round((behImp.length / behUnlockers.length) * 100) : 0;
   document.getElementById("engSales").innerHTML = [
-    li(`<b>Yes — 30× growth.</b> 190 views in September (launch week only) → <b>4,522</b> in October → <b>5,913</b> by Nov 22. Unique agents checking the card on a normal day grew from ~2 to <b>~28</b>.`),
-    li(`Views cluster at month-end (Oct 26–31: <b>1,644</b> in six days) — agents check the card most while pushing past 70%.`),
+    li(`<b>Yes — 30× growth.</b> 190 views in September (launch week only) → <b>4,522</b> in October → <b>5,913</b> by Nov 22. Peak-day checkers: <b>${Math.max(...PRESELL_AGENTS)} agents</b>.`),
+    li(`<b>After unlocking, ${behImp.length} of ${behUnlockers.length} unlockers (${impPct}%) checked the card more per day</b> — ~${Math.round(avg(behUnlockers.map((b) => b.bpd)))}/day before → ~${Math.round(avg(behUnlockers.map((b) => b.apd)))}/day after.`),
+    li(`<b>Heavy-check days (3+ opens in one day):</b> <b>${heavyAfter}</b> after unlock vs <b>${heavyBefore}</b> before, across the same agents — intensity, not just frequency.`),
+    li(`<b>Celebration &amp; popup:</b> celebration fired <b>${CELEB_TOTAL}× for ${CELEB_UNIQ} agents</b>; popup dismissed ${Math.round((POPUP_D / POPUP_V) * 100)}% of the time — noise.`),
+    li(`<b>Needs a push now:</b> <b>${stoppedCount}</b> unlockers haven't opened the card in the last 7 days; <b>${activeZeroNow}</b> active agents never opened it (names in section 8).`),
   ].map(li).join("");
   document.getElementById("engTele").innerHTML = [
-    li(`<b>Yes — fast adoption, then settling.</b> Launched late Sep (109 views in the last week of Sep), peaked at <b>1,034</b> in October, and <b>444</b> by Nov 22.`),
-    li(`<b>5–8 telesales agents</b> check the Commissions screen on an active day — the whole team, effectively.`),
+    li(`<b>Yes — fast adoption, then settling.</b> 149 (late Sep) → <b>1,034</b> (Oct) → <b>444</b> (Nov 1–22). Peak-day checkers: <b>${Math.max(...TELE_AGENTS)} agents</b> — effectively the whole team.`),
+    li(`<b>Right now:</b> <b>${tLast7} views in the last 7 days</b> (~${tUniqAvg} checkers/day).`),
+    li(`<b>Needs a push now:</b> <b>${tZeroNov}</b> telesales agents with <b>zero</b> Commissions-screen views in November.`),
   ].map(li).join("");
   document.getElementById("engFul").innerHTML = [
-    li(`<b>Data unreachable before November</b> — the CashVan commission taps only start on <b>Nov 1</b>.`),
-    li(`<b>284 taps in November</b> by <b>28 agents</b> (phone-matched), peaking around Nov 11 (93 taps, 11 agents). Two more months of data will make this cohort readable.`),
+    li(`<b>Tracking from Nov 1</b> (real ship date). <b>284 taps</b> by <b>${fulEver} matched agents</b> of 47 tracked — some CashVan devices match no current agent (roster cleanup, section 8).`),
+    li(`<b>Derived crossings (section 2):</b> <b>${fulCrossedNow} of ${FUL_UNLOCK.length} crossed 70%</b> of their carton target — <b>${fulFirstWeekNow} in the first week</b> (earliest day 3).`),
+    li(`<b>Needs a push now:</b> <b>${fulPush}</b> fulfillment agents haven't crossed 70% yet — 4 of them at ~0% (likely inactive; confirm before coaching).`),
   ].map(li).join("");
 
   // ════════ SECTION 5 — in-app experience (three apps) ════════
