@@ -697,8 +697,9 @@
     <div class="rep-section" style="border-top:none; margin-top:18px; padding-top:0">
       <h2>1 · Feature impact by day</h2>
       <p class="lede" id="dailyLede">…</p>
-      <div class="rep-chart" style="height:340px"><div id="repDaily"></div></div>
-      <p class="rep-note" id="dailyNote">Lines: commission-screen opens per day per channel. Hover a day for the channel breakdown (views + unique agents). Fulfilment taps only exist from 1 November — before that the data is unreachable for this channel.</p>
+      <div class="rep-apps" id="dailyCards"></div>
+      <div class="rep-chart" style="height:440px"><div id="repDaily"></div></div>
+      <p class="rep-note" id="dailyNote"><b>Surfaces behind each line:</b> Sales agents — the commission progress card in the Presell PWA. Managers — an agent's commission sheet opened from Control Tower's commission auditor. Telesales — the Commissions screen in the Tele-Sales App. Fulfillment — the commission tab in the CashVan App (tracking starts Nov 1 — real ship date). Each line divides the day's opens by the people who opened that day, so new joiners and leavers never fake a trend; hover shows raw opens. Revenue bars use the same FIELD total_revenue convention as the rest of this report.</p>
     </div>
 
     <div class="rep-section">
@@ -780,7 +781,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v7 · 24 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v8 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1486,40 +1487,97 @@ function renderReportInner() {
 
   document.getElementById("repStamp").textContent = `updated ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}, with data through 22 November`;
 
-  // ════════ SECTION 1 — daily tracking, one line per channel ════════
+  // ════════ SECTION 1 — daily tracking: four commission surfaces + field revenue ════════
   const dayLabels = [];
   const mk = (m, days) => { for (let i = 1; i <= days; i++) dayLabels.push(`${m} ${i}`); };
   mk("Sep", 30); mk("Oct", 31); mk("Nov", 22);
+  // managers: Control Tower Mixpanel (project 4054772), event "Agent Commission Sheet Opened",
+  // Cairo days Sep 1 – Nov 22 (period totals: 1,073 opens by 15 unique managers)
+  const MGR_VIEWS = [1,0,2,0,0,77,4,0,7,0,0,7,18,16,3,12,1,0,8,11,3,0,12,3,2,0,13,14,19,11,6,0,14,29,34,0,5,0,0,0,41,18,22,17,0,0,4,17,10,6,11,0,0,2,40,40,24,36,45,23,116,10,21,11,44,0,13,4,48,11,11,10,0,0,4,14,26,6,7,1,1,4,23];
+  const MGR_UNIQ = [1,0,1,0,0,3,1,0,1,0,0,1,4,2,3,4,1,0,2,3,2,0,2,1,2,0,4,2,4,4,2,0,1,1,1,0,1,0,0,0,2,2,2,3,0,0,1,4,2,2,3,0,0,1,4,3,3,5,5,2,6,2,2,4,3,0,2,1,3,3,2,2,0,0,2,3,6,2,2,1,1,2,5];
+  const MGR_UNIQ_PERIOD = 15;
+  const REV83 = DAILY_REV.slice(62); // field revenue Sep 1 – Nov 22 (DAILY_REV starts Jul 1: 31+31=62), same FIELD convention as the rest of the report
+  // headline metric: opens per person who opened that day (raw totals live in the hover)
+  const rateData = (views, users, pad) => views.map((v, i) => {
+    if (pad && i < pad) return null;
+    const u = users[i];
+    return u ? { value: Math.round((v / u) * 10) / 10, raw: v, users: u } : null;
+  });
+  const salesRate = rateData(PRESELL_VIEWS, PRESELL_AGENTS);
+  const mgrRate = rateData(MGR_VIEWS, MGR_UNIQ);
+  const teleRate = rateData(TELE_VIEWS, TELE_AGENTS);
+  const fulRate = rateData(FUL_DAILY, FUL_AGENTS, 61);
+  const ann = { silent: true, symbol: "none", lineStyle: { color: "rgb(154,179,187)", type: "dashed", width: 1 }, label: { show: true, position: "insideEndTop", fontSize: 10, color: "rgb(98,116,142)", formatter: (p) => p.name || "" }, data: [
+    { xAxis: "Sep 20", name: "launch" }, { xAxis: "Oct 1", name: "Oct" }, { xAxis: "Nov 1", name: "Nov" }, { xAxis: "Nov 22", name: "data cut" },
+  ] };
   const daily = repChart("repDaily");
   daily.setOption({
     animation: false,
-    grid: { left: 56, right: 20, top: 44, bottom: 30 },
-    legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Sales (Presell PWA)", "Telesales", "Fulfillment (CashVan)"] },
+    axisPointer: { link: [{ xAxisIndex: "all" }] },
+    legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Sales agents — Presell card", "Managers — Commission auditor", "Telesales — Commissions screen", "Fulfillment — CashVan tab", "Field revenue (EGP)"] },
     tooltip: {
       trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12,
       textStyle: { fontSize: 12, color: "rgb(2,6,24)" },
       formatter: (ps) => {
         let out = `<b>${ps[0].axisValue}</b><br/>`;
         for (const p of ps) {
-          // fulfillment has null points before Nov 1 — never touch .value/.agents on them
-          const d = p.data && typeof p.data === "object" ? p.data : null;
-          out += d
-            ? `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${fmtInt(d.value)}</b> views · <b>${fmtInt(d.agents)}</b> ${d.agents === 1 ? "agent" : "agents"}<br/>`
-            : `<span style="color:${p.color}">●</span> ${p.seriesName}: — (no data yet)<br/>`;
+          if (p.seriesName === "Field revenue (EGP)") {
+            out += `<span style="color:${p.color}">■</span> Field revenue: <b>${fmtEGP(p.value)}</b><br/>`;
+          } else if (p.data && typeof p.data === "object") {
+            out += `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${p.data.value}</b> opens/person · <b>${fmtInt(p.data.raw)}</b> opens · <b>${p.data.users}</b> ${p.data.users === 1 ? "person" : "people"}<br/>`;
+          } else {
+            out += `<span style="color:${p.color}">●</span> ${p.seriesName}: — (no data yet)<br/>`;
+          }
         }
         return out;
       },
     },
-    xAxis: { type: "category", data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
-    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: fmtInt }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+    grid: [
+      { left: 56, right: 20, top: 48, height: 246 },
+      { left: 56, right: 20, top: 344, height: 64 },
+    ],
+    xAxis: [
+      { type: "category", gridIndex: 0, data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+      { type: "category", gridIndex: 1, data: dayLabels, axisLabel: { show: false }, axisTick: { show: false }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+    ],
+    yAxis: [
+      { type: "value", gridIndex: 0, name: "opens / person that day", nameTextStyle: { ...axisFont, fontSize: 10, color: "rgb(98,116,142)" }, axisLabel: { ...axisFont, formatter: (v) => (Number.isInteger(v) ? v : v.toFixed(1)) }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+      { type: "value", gridIndex: 1, axisLabel: { show: false }, splitLine: { show: false } },
+    ],
     series: [
-      { name: "Sales (Presell PWA)", type: "line", data: PRESELL_VIEWS.map((v, i) => ({ value: v, agents: PRESELL_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(23,127,142)" }, itemStyle: { color: "rgb(23,127,142)" } },
-      { name: "Telesales", type: "line", data: TELE_VIEWS.map((v, i) => ({ value: v, agents: TELE_AGENTS[i] })), smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(144,106,229)" }, itemStyle: { color: "rgb(144,106,229)" } },
-      { name: "Fulfillment (CashVan)", type: "line", data: [...Array(61).fill(null), ...FUL_DAILY.map((v, i) => ({ value: v, agents: FUL_AGENTS[i] }))], smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(237,153,14)" }, itemStyle: { color: "rgb(237,153,14)" } },
+      { name: "Sales agents — Presell card", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: salesRate, smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(23,127,142)" }, itemStyle: { color: "rgb(23,127,142)" }, markLine: ann },
+      { name: "Managers — Commission auditor", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: mgrRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(83,163,242)" }, itemStyle: { color: "rgb(83,163,242)" } },
+      { name: "Telesales — Commissions screen", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: teleRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(144,106,229)" }, itemStyle: { color: "rgb(144,106,229)" } },
+      { name: "Fulfillment — CashVan tab", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: fulRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(237,153,14)" }, itemStyle: { color: "rgb(237,153,14)" } },
+      { name: "Field revenue (EGP)", type: "bar", xAxisIndex: 1, yAxisIndex: 1, data: REV83, barWidth: "72%", itemStyle: { color: "rgba(23,127,142,0.30)" } },
     ],
   }, { notMerge: true });
+
+  // standout days: a series at ≥3× its own median (and ≥10 raw) gets named in the lede
+  const med = (arr) => { const v = arr.filter((x) => x > 0).slice().sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : 0; };
+  const standout = [];
+  const seriesRaw = [
+    ["Sales agents", PRESELL_VIEWS, 0],
+    ["Managers", MGR_VIEWS, 0],
+    ["Telesales", TELE_VIEWS, 0],
+    ["Fulfillment", FUL_DAILY, 61],
+  ];
+  for (const [nm, arr, pad] of seriesRaw) {
+    const m = med(arr);
+    if (!m) continue;
+    arr.forEach((v, i) => {
+      if (i >= (pad || 0) && v >= Math.max(10, 3 * m)) standout.push({ label: dayLabels[i], nm, v, x: Math.round((v / m) * 10) / 10 });
+    });
+  }
+  standout.sort((a, b) => b.v - a.v);
+  const stTxt = standout.slice(0, 4).map((s) => `${s.label}: ${s.nm.toLowerCase()} at ${s.v} (${s.x}× median)`).join(" · ");
+  document.getElementById("dailyCards").innerHTML =
+    `<div class="rep-kpi"><div class="l">Sales agents · Presell card</div><div class="v">${fmtInt(PRESELL_VIEWS.reduce((a, b) => a + b, 0))}</div><div class="d" style="color:var(--muted-foreground)">card views since Sep 20 · peak day ${Math.max(...PRESELL_AGENTS)} agents</div></div>` +
+    `<div class="rep-kpi"><div class="l">Managers · Commission auditor</div><div class="v">${fmtInt(MGR_VIEWS.reduce((a, b) => a + b, 0))}</div><div class="d" style="color:var(--muted-foreground)">agent-sheet opens · ${MGR_UNIQ_PERIOD} managers since Sep</div></div>` +
+    `<div class="rep-kpi"><div class="l">Telesales · Commissions screen</div><div class="v">${fmtInt(TELE_VIEWS.reduce((a, b) => a + b, 0))}</div><div class="d" style="color:var(--muted-foreground)">screen views · peak day ${Math.max(...TELE_AGENTS)} agents</div></div>` +
+    `<div class="rep-kpi"><div class="l">Fulfillment · CashVan tab</div><div class="v">${fmtInt(FUL_DAILY.reduce((a, b) => a + b, 0))}</div><div class="d" style="color:var(--muted-foreground)">tab taps since Nov 1 · peak day ${Math.max(...FUL_AGENTS)} agents</div></div>`;
   document.getElementById("dailyLede").innerHTML =
-    `Every day an agent opens a commission screen, that counts here. <b>Sales</b> got the feature on <b>Sep 20</b> (the launch burst), <b>Telesales</b> started opening its Commissions screen from <b>late Sep</b>, and <b>Fulfillment</b> taps only begin on <b>Nov 1</b> — before that date the data can't be reached for that channel. The gap between the lines is a rollout gap, not a usage gap.`;
+    `Four lines, four surfaces — so nobody mistakes one screen for another. Three count <b>agents</b> opening their commission view in their own app (Presell progress card, Tele-Sales Commissions screen, CashVan commission tab); the fourth counts <b>managers</b> pulling up an agent's commission sheet in Control Tower's auditor. Every line is <b>opens per person who opened that day</b> — hover any day for raw totals — and the bars underneath are that day's field revenue, so the opens→money relationship is one glance away. Lines start when each surface shipped: <b>Sep 20</b> (launch), late Sep (telesales), <b>Nov 1</b> (fulfillment — a real start, not a gap).${stTxt ? ` <b>Standout days:</b> ${stTxt}.` : ""}`;
 
   // ════════ SECTION 2 — unlock-day table ════════
   const unlockRows = Object.entries(UNLOCK_DAYS)
@@ -2002,7 +2060,7 @@ function renderReportInner() {
   document.getElementById("repMethod").innerHTML =
     `<b>Revenue</b> follows the admin-dashboard convention: <b>total_revenue</b> from delivered orders (full or partial, not cancelled or voided), on the business date, Cairo time, FIELD channel. ` +
     `<b>Before</b> = Jul–Aug; <b>after</b> = Sep–Nov; <b>continuing agents</b> had revenue in both periods, so part months never compare against full ones. ` +
-    `<b>Taps/views</b> = commission-screen opens from each app's own Mixpanel project: Presell (EU), Tele-Sales and CashVan (US); CashVan agents are matched by phone number. ` +
+    `<b>Taps/views</b> = commission-screen opens from each app's own Mixpanel project: Presell (EU), Tele-Sales and CashVan (US); CashVan agents are matched by phone number. <b>Managers</b> add the commission auditor's agent-sheet opens from the Control Tower project (<b>Agent Commission Sheet Opened</b>). All four daily lines divide the day's opens by the people who opened that day. ` +
     `<b>Unlock day</b> = first day of a month where the Presell progress card showed <b>unlocked = true</b> — the app's own achievement number; Nov-1 flags reflect October's state and are excluded. ` +
     `Tele-Sales and CashVan apps don't emit an unlock event yet, so unlock days for those channels can't be reached. ` +
     `<b>Fulfillment quantities</b> = assigned vs delivered units from presentation.fulfillment_agent, joined to agents through the legacy roster. ` +
