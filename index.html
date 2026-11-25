@@ -778,7 +778,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v21 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v22 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1006,7 +1006,12 @@ function drawScatter() {
       formatter: (p) => {
         const r = p.data.raw, seg = SEG();
         return `<b>${p.name}</b> <span style="color:rgb(98,116,142)">· ${r.gov}</span><br/>` +
-          (pctMode ? `% of Nov target (live): <b>${fmtPct(r.pct)}</b> · target ${fmtEGP(r.tNov)} · actual ${fmtEGP(r.aNov)}<br/>` : `${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>`) +
+          (pctMode
+            ? `% of Nov target (live): <b>${fmtPct(r.pct)}</b> · target ${fmtEGP(r.tNov)} · actual ${fmtEGP(r.aNov)}<br/>`
+            : `${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>` +
+              (novById[r.a.agent_id]
+                ? `Nov target (live): <b>${fmtPct(novById[r.a.agent_id][4])}</b> of ${fmtEGP(novById[r.a.agent_id][2])} · actual ${fmtEGP(novById[r.a.agent_id][3])}<br/>`
+                : `Nov target: — (no Nov plan row)<br/>`)) +
           `${seg.utilShort}: <b>${fmtInt(r.clicks)}</b> · ${seg.ordersLbl}: ${fmtInt(r.orders)} · ${seg.visitsLbl}: ${fmtInt(r.visits)}<br/>` +
           `<span style="color:var(--brand)">click to open monthly story</span>`;
       },
