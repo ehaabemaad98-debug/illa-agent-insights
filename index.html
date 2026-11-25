@@ -2282,6 +2282,21 @@ function renderReportInner() {
   document.getElementById("tgtNote").innerHTML =
     `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts), read from the <b>production</b> database — the same source the apps read — October rows are the concluded month, November rows are live through Nov 24, read from the <b>production</b> commission database — the same source the apps read (refreshed every 15 min) — and <b>are not a final verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (card 4 above), so their target story can't be told per-agent until those apps ship the card.`;
 
+  // manager enablement — Control Tower enhancements for the people who act on this report
+  document.getElementById("mgrEnable").innerHTML =
+    `<h3 style="margin:26px 0 8px;font-size:18px">Manager enablement — Control Tower enhancements worth building</h3>` +
+    `<p class="lede">Managers already pull up agent commission sheets <b>1,073 times</b> — these builds aim that attention at the right agents at the right moment. The agent-facing progress screens (T9–T11) exist as tickets; these are their manager-facing complements.</p>` +
+    `<div class="unlock-tbl"><table><thead><tr><th>Enhancement</th><th>For</th><th>The data behind it</th></tr></thead><tbody>` +
+    [
+      ["Day-15 under-bar list", "Sales leadership", `One screen: every agent under a chosen pace on day 15 (configurable to any day) with the exact gap to 70% — replaces hunting through the auditor, and feeds the checkpoint program.`],
+      ["Target-row gap guard", "Sales-ops · plan editors", `${octNone.length} agents had no October target — one sold ${fmtEGP(283380)} untracked. A banner in the plan editor plus a month-open checklist ends the gap for good.`],
+      ["Payout verification view", "Finance · CEO office", `One table: who unlocked vs whether the payout landed — one missed payout after a celebration costs the mechanic its credibility with the whole roster (card 6 above).`],
+      ["Carton-target validation + bulk suggest", "Sales-ops · fulfillment lead", `Production fulfillment targets are still flat 70-carton placeholder rows while actuals run in the thousands — validation blocks placeholders, and bulk-fill suggests each agent’s last-3-month average.`],
+      ["Telesales per-agent target helper", "Plan editors", `Show each telesales agent’s route-based actuals for the last 3 months inside the target dialog, so targets stop mirroring the company total and a per-agent 70% becomes playable.`],
+      ["Zero-open adoption tracker", "Supervisors", `A per-manager view of their own agents’ weekly commission-screen opens — closes the ${zA + zS}-agent zero-open gap without anyone asking the PM for lists.`],
+    ].map((r) => `<tr><td><b>${r[0]}</b></td><td style="white-space:nowrap;font-size:12px">${r[1]}</td><td style="color:var(--muted-foreground);font-size:12.5px;line-height:1.6">${r[2]}</td></tr>`).join("") +
+    `</tbody></table></div>`;
+
   // ── methodology
   document.getElementById("repMethod").innerHTML =
     `<b>Revenue</b> follows the admin-dashboard convention: <b>total_revenue</b> from delivered orders (full or partial, not cancelled or voided), on the business date, Cairo time, FIELD channel. ` +
