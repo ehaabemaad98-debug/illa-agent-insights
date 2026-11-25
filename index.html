@@ -731,7 +731,7 @@
     </div>
 
     <div class="rep-section">
-      <h2>5 · Did agents engage with the card more?</h2>
+      <h2>5 · Engagement &amp; the in-app experience — did agents check the card more?</h2>
       <p class="lede" id="engLede">…</p>
       <div class="rep-chart" style="height:260px"><div id="repEngage"></div></div>
       <h3 style="margin:16px 0 0;font-size:14px;font-weight:700">Weekly commission-screen opens by channel <span style="color:var(--muted-foreground);font-weight:500">(7-day buckets from Sep 1 · * = partial bucket)</span></h3>
@@ -744,24 +744,13 @@
     </div>
 
     <div class="rep-section">
-      <h2>6 · How agents see their commission in the app</h2>
-      <p class="lede" id="appLede">…</p>
-      <div class="rep-apps">
-        <div class="rep-kpi"><div class="l">Presell PWA · progress card</div><div class="v">10,625</div><div class="d" style="color:var(--muted-foreground)">views · 34 agents · unlock at 70%</div></div>
-        <div class="rep-kpi"><div class="l">Tele-Sales App · Commissions screen</div><div class="v">1,625</div><div class="d" style="color:var(--muted-foreground)">views · 8 agents · since late Sep</div></div>
-        <div class="rep-kpi"><div class="l">CashVan App · commission tab</div><div class="v">284</div><div class="d" style="color:var(--muted-foreground)">taps · 28 agents · tracking from Nov</div></div>
-        <div class="rep-kpi"><div class="l">Combined screens</div><div class="v">12,534</div><div class="d" style="color:var(--muted-foreground)">commission touchpoints total</div></div>
-      </div>
-    </div>
-
-    <div class="rep-section">
-      <h2>7 · Which agents moved most?</h2>
+      <h2>6 · Which agents moved most?</h2>
       <p class="lede" id="movLede">…</p>
       <div class="rep-movers" id="repMovers"></div>
     </div>
 
     <div class="rep-section">
-      <h2>8 · What could we do next?</h2>
+      <h2>7 · What could we do next?</h2>
       <p class="lede" id="recoLede">…</p>
       <div id="zeroOpen"></div>
       <div id="recoList" style="margin-top:18px"></div>
@@ -770,7 +759,7 @@
     </div>
 
     <div class="rep-section">
-      <h2>9 · Target achievement — who hits, who misses, and how we move both</h2>
+      <h2>8 · Target achievement — who hits, who misses, and how we move both</h2>
       <p class="lede" id="tgtLede">…</p>
       <div id="tgtHow"></div>
       <div id="tgtDist"></div>
@@ -785,7 +774,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v11 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v12 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1827,7 +1816,7 @@ function renderReportInner() {
     chStats.map(chLine).join("") + `</tbody></table></div>`;
   const f3 = chStats[0];
   document.getElementById("weekLede").innerHTML =
-    `The full-month picture, every channel: for each <b>continuing agent</b> (had activity in both windows), the <b>before</b> average is Jul + Aug ÷ 2 and the <b>after</b> average is Sep + Oct + November ÷ ${AFTER_DIV} (November prorated to Nov 22). Field sales: <b>${f3.improved} of ${f3.rows.length} continuing agents improved</b> vs their own before-average (${f3.declined} declined, ${f3.flat} within ±5%) — and the same honest split is shown per channel below and in the chart. October was our <b>best revenue month so far</b> and the card's first full month — whether that's the feature or the market, this per-agent split is the evidence base, and the names behind it are in section 7.`;
+    `The full-month picture, every channel: for each <b>continuing agent</b> (had activity in both windows), the <b>before</b> average is Jul + Aug ÷ 2 and the <b>after</b> average is Sep + Oct + November ÷ ${AFTER_DIV} (November prorated to Nov 22). Field sales: <b>${f3.improved} of ${f3.rows.length} continuing agents improved</b> vs their own before-average (${f3.declined} declined, ${f3.flat} within ±5%) — and the same honest split is shown per channel below and in the chart. October was our <b>best revenue month so far</b> and the card's first full month — whether that's the feature or the market, this per-agent split is the evidence base, and the names behind it are in section 6.`;
   document.getElementById("weekNote").innerHTML =
     `<b>How to read this:</b> per-agent averages remove roster noise (leavers and joiners don't move these numbers). ±5% counts as flat so one good Friday can't fake a trend. Continuing-only means agents active in both windows — part-months never compare against full ones. Telesales and fulfillment have no commission card yet (their <b>plan-derived</b> crossings are in section 2), so their before/after reflects the channel's own momentum, not card adoption. November is prorated through Nov 22 and will grow as the month closes.`;
 
@@ -1856,7 +1845,7 @@ function renderReportInner() {
     });
   }
   document.getElementById("engLede").innerHTML =
-    `Two questions, one section: <b>did engagement rise after the unlock</b>, and <b>who needs a push now</b>. The bars are monthly opens per app; the weekly stack underneath shows the rhythm; the lists carry the counts. Extra signals from the Presell app: the <b>70% celebration fired ${CELEB_TOTAL} times for ${CELEB_UNIQ} agents</b>, and the update popup was opened ${fmtInt(POPUP_V)} times but dismissed ${fmtInt(POPUP_D)} (${Math.round((POPUP_D / POPUP_V) * 100)}%) — treat the popup as noise, not engagement.`;
+    `Two questions, one section: <b>did engagement rise after the unlock</b>, and <b>who needs a push now</b>. The bars are monthly opens per app; the weekly stack underneath shows the rhythm; the lists carry the counts. Extra signals from the Presell app: the <b>70% celebration fired ${CELEB_TOTAL} times for ${CELEB_UNIQ} agents</b>, and the update popup was opened ${fmtInt(POPUP_V)} times but dismissed ${fmtInt(POPUP_D)} (${Math.round((POPUP_D / POPUP_V) * 100)}%) — treat the popup as noise, not engagement. Across the three apps the commission screen has been opened <b>12,534</b> times — each channel through its own screen: the Presell progress card, the Tele-Sales Commissions screen, the CashVan commission tab.`;
   const vc = repChart("repEngage");
   vc.setOption({
     animation: false,
@@ -1905,7 +1894,7 @@ function renderReportInner() {
     li(`<b>After unlocking, ${behImp.length} of ${behUnlockers.length} unlockers (${impPct}%) checked the card more per day</b> — ~${Math.round(avg(behUnlockers.map((b) => b.bpd)))}/day before → ~${Math.round(avg(behUnlockers.map((b) => b.apd)))}/day after.`),
     li(`<b>Heavy-check days (3+ opens in one day):</b> <b>${heavyAfter}</b> after unlock vs <b>${heavyBefore}</b> before, across the same agents — intensity, not just frequency.`),
     li(`<b>Celebration &amp; popup:</b> celebration fired <b>${CELEB_TOTAL}× for ${CELEB_UNIQ} agents</b>; popup dismissed ${Math.round((POPUP_D / POPUP_V) * 100)}% of the time — noise.`),
-    li(`<b>Needs a push now:</b> <b>${stoppedCount}</b> unlockers haven't opened the card in the last 7 days; <b>${activeZeroNow}</b> active agents never opened it (names in section 8).`),
+    li(`<b>Needs a push now:</b> <b>${stoppedCount}</b> unlockers haven't opened the card in the last 7 days; <b>${activeZeroNow}</b> active agents never opened it (names in section 7).`),
   ].map(li).join("");
   document.getElementById("engTele").innerHTML = [
     li(`<b>Yes — fast adoption, then settling.</b> 149 (late Sep) → <b>1,034</b> (Oct) → <b>444</b> (Nov 1–22). Peak-day checkers: <b>${Math.max(...TELE_AGENTS)} agents</b> — effectively the whole team.`),
@@ -1913,15 +1902,10 @@ function renderReportInner() {
     li(`<b>Needs a push now:</b> <b>${tZeroNov}</b> telesales agents with <b>zero</b> Commissions-screen views in November.`),
   ].map(li).join("");
   document.getElementById("engFul").innerHTML = [
-    li(`<b>Tracking from Nov 1</b> (real ship date). <b>284 taps</b> by <b>${fulEver} matched agents</b> of 47 tracked — some CashVan devices match no current agent (roster cleanup, section 8).`),
+    li(`<b>Tracking from Nov 1</b> (real ship date). <b>284 taps</b> by <b>${fulEver} matched agents</b> of 47 tracked — some CashVan devices match no current agent (roster cleanup, section 7).`),
     li(`<b>Derived crossings (section 2):</b> <b>${fulCrossedNow} of ${FUL_UNLOCK.length} crossed 70%</b> of their carton target — <b>${fulFirstWeekNow} in the first week</b> (earliest day 3).`),
     li(`<b>Needs a push now:</b> <b>${fulPush}</b> fulfillment agents haven't crossed 70% yet — 4 of them at ~0% (likely inactive; confirm before coaching).`),
   ].map(li).join("");
-
-  // ════════ SECTION 5 — in-app experience (three apps) ════════
-  document.getElementById("appLede").innerHTML =
-    `Each channel sees the commission through its own app screen. Sales agents get the richest view — a live progress bar with an unlock celebration at 70%; telesales and fulfillment agents get a commission screen without (yet) the unlock mechanic:`;
-  // rep-apps static block already lists the three apps (kept from the HTML)
 
   // ════════ SECTION 6 — movers: 15 agents, explained ════════
   const withDelta = [...continuing].sort((x, y) => y.dAvg - x.dAvg);
@@ -2106,7 +2090,7 @@ function renderReportInner() {
       `<div class="rep-kpi"><div class="l">1 · Target set</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Supervisor sets each agent's monthly EGP target in Control Tower's commission plan</div></div>` +
       `<div class="rep-kpi"><div class="l">2 · Live progress</div><div class="v">%</div><div class="d" style="color:var(--muted-foreground)">The Presell card shows the agent's own achievement % all month, updated with every delivered order</div></div>` +
       `<div class="rep-kpi"><div class="l">3 · 70% unlock</div><div class="v">≥70%</div><div class="d" style="color:var(--muted-foreground)">Crossing 70% of target unlocks the commission — 27 of 42 field agents did it in October</div></div>` +
-      `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (section 8)</div></div>` +
+      `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (section 7)</div></div>` +
     `</div>`;
 
   // ── October (final) distribution summary
@@ -2166,7 +2150,7 @@ function renderReportInner() {
   // ── why agents don't reach the target (data-driven buckets, computed from the roster)
   const whyBuckets = [
     { k: "n", label: "No target set — the game wasn't playable", get: () => octNone, note: "Process gap, not performance: an agent without a target row can't see progress or unlock, even while selling." },
-    { k: "l2", label: "Likely left the company (no activity > 60 days)", get: () => TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70 && (tgtDays(r[0]) ?? 999) > 60), note: "Their miss is a people gap — handle in the section 8 roster cleanup, not coaching." },
+    { k: "l2", label: "Likely left the company (no activity > 60 days)", get: () => TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70 && (tgtDays(r[0]) ?? 999) > 60), note: "Their miss is a people gap — handle in the section 7 roster cleanup, not coaching." },
     { k: "s2", label: "Inactive this month (31–60 days)", get: () => TGT_OCT.filter((r) => { const d = tgtDays(r[0]); return r[4] < 70 && d != null && d > 30 && d <= 60; }), note: "Slipping out of the roster — intervene this week." },
     { k: "v", label: "Never opens the commission screen (visibility gap)", get: () => TGT_OCT.filter((r) => r[4] < 70 && tgtClicks(r[0]) === 0 && (tgtDays(r[0]) ?? 999) <= 30), note: "Selling without ever seeing their bar — the feature can't motivate what it can't reach." },
     { k: "d", label: "Running far below their own October pace", get: () => TGT_NOV.filter((r) => (octPct[r[0]] ?? 0) >= 50 && r[4] < (octPct[r[0]] ?? 0) * 0.5), note: "Mid-month signal, not a verdict: November bars were also raised (roster 42→33), and the final-week push is still pending. If the gap persists into December, it is a real decline — supervisor 1:1." },
@@ -2190,7 +2174,7 @@ function renderReportInner() {
       t: `Pull the ${octNear.length + octMiss.filter((r) => (tgtDays(r[0]) ?? 999) <= 30).length} live non-achievers over the 70% line.`,
       problem: `In October ${TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70).length} agents with a real target finished under 70% — the closest at 49.7%, and nobody landed in the 50–70 band: the final-week push either lands or the month collapses. November is mid-flight with the same dynamic ahead — ${lateOct.length} of October's unlockers only crossed after day 25.`,
       why: `Near-miss agents are the cheapest wins in the whole system: they already sell at ~2/3 of target, so the gap is motivation cadence, not capability. Fixing the no-target process gap also un-blocks agents who are literally selling without being allowed to unlock.`,
-      solution: `Three moves. <b>(1)</b> Supervisor deal with each near-miss agent: day-15 checkpoint, weekly pace vs their own target. <b>(2)</b> Sales-ops rule: <b>no agent starts a month without a target row</b> — the ${octNone.length} October cases must not repeat in December. <b>(3)</b> Inactive-month agents go through the section 8 list first (adoption vs leaver).`,
+      solution: `Three moves. <b>(1)</b> Supervisor deal with each near-miss agent: day-15 checkpoint, weekly pace vs their own target. <b>(2)</b> Sales-ops rule: <b>no agent starts a month without a target row</b> — the ${octNone.length} October cases must not repeat in December. <b>(3)</b> Inactive-month agents go through the section 7 list first (adoption vs leaver).`,
       when: `Target-rule fix before <b>Dec 1</b>; near-miss deals start day 1 of December with the day-15 checkpoint.`,
       how: `From the October table: sort by "Achieved", coach the closest-to-70% rows first (49.7% leads), and agree one weekly number per agent ("you need ${fmtEGP(200000)} a week"). Track the same table in December — success = the under-70% count drops and a real 50–70% band appears mid-month.`,
       badge: ["strong", "Strong evidence"],
@@ -2199,7 +2183,7 @@ function renderReportInner() {
       t: `Turn the ${octHi.length} October achievers into repeaters — only ${streak2} unlocked both September AND October.`,
       problem: `${octHi.length} agents unlocked in October, but just ${streak2} did it two months running. One-off unlocks don't compound; the OKR is faster target-hitting, every month.`,
       why: `${top5} finished above 90% — they have headroom, and stretch targets convert over-achievement into company revenue. Meanwhile agents at 70–75% are one bad week from losing it: consistency, not the single unlock, is what the payout system should reward.`,
-      solution: `<b>(1)</b> Streak recognition: "unlocked twice in a row" called out in the monthly meeting — cheap, public, repeatable. <b>(2)</b> Stretch +7.5% targets for the ${octHi.filter((r) => r[4] >= 90).length} agents above 90%. <b>(3)</b> Keep their payouts confirmed and on time (section 8, card 6) — the whole mechanic rests on the money arriving.`,
+      solution: `<b>(1)</b> Streak recognition: "unlocked twice in a row" called out in the monthly meeting — cheap, public, repeatable. <b>(2)</b> Stretch +7.5% targets for the ${octHi.filter((r) => r[4] >= 90).length} agents above 90%. <b>(3)</b> Keep their payouts confirmed and on time (section 7, card 6) — the whole mechanic rests on the money arriving.`,
       when: `Streak recognition at the November close meeting; stretch targets set with the December plans.`,
       how: `Compute the streak list from the unlock table (Sep + Oct both non-"—"), pick the ≥90% names from the October table above, and have supervisors open the December conversation with "you did ${fmtPct(90)} — here's the plan to do it again, slightly bigger."`,
       badge: ["check", "Check first"],
@@ -2218,7 +2202,7 @@ function renderReportInner() {
     ).join("");
 
   document.getElementById("tgtNote").innerHTML =
-    `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts) — October rows are the concluded month, November rows are live through 22 Nov and <b>are not a verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (section 8, card 4), so their target story can't be told per-agent until those apps ship the card.`;
+    `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts) — October rows are the concluded month, November rows are live through 22 Nov and <b>are not a verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (section 7, card 4), so their target story can't be told per-agent until those apps ship the card.`;
 
   // ── methodology
   document.getElementById("repMethod").innerHTML =
@@ -2228,7 +2212,7 @@ function renderReportInner() {
     `<b>Unlock day</b> = first day of a month where the Presell progress card showed <b>unlocked = true</b> — the app's own achievement number; Nov-1 flags reflect October's state and are excluded. ` +
     `Tele-Sales and CashVan apps don't emit an unlock event yet, so unlock days for those channels can't be reached. ` +
     `<b>Fulfillment quantities</b> = assigned vs delivered units from presentation.fulfillment_agent, joined to agents through the legacy roster. ` +
-    `Unlock history is fixed for past months; new months follow the runbook in insights/README.md. <b>Last order</b> (section 8) = each agent’s <b>last_active</b> business date — the newest day with any order, call, or fulfillment activity across the analytics tables, through 22 Nov.`;
+    `Unlock history is fixed for past months; new months follow the runbook in insights/README.md. <b>Last order</b> (section 7) = each agent’s <b>last_active</b> business date — the newest day with any order, call, or fulfillment activity across the analytics tables, through 22 Nov.`;
 
   repCharts.forEach((c) => c.resize());
 }
