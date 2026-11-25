@@ -754,6 +754,7 @@
       <p class="lede" id="recoLede">…</p>
       <div id="zeroOpen"></div>
       <div id="recoList" style="margin-top:18px"></div>
+      <div id="rescueNames"></div>
       <p class="rep-note" id="recoAlso"></p>
       <p class="rep-note">The figures overlap (an agent can appear in more than one proposal), so don't add them up.</p>
     </div>
@@ -766,6 +767,7 @@
       <div id="tgtWhy"></div>
       <div id="tgtPlan"></div>
       <p class="rep-note" id="tgtNote"></p>
+      <div id="mgrEnable"></div>
     </div>
 
     <div class="rep-section">
@@ -773,7 +775,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v15 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v16 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -2072,12 +2074,12 @@ function renderReportInner() {
       badge: ["strong", "Strong evidence"],
     },
     {
-      t: `Coach the ${neverNow} continuing agents who have never unlocked the commission.`,
-      problem: `${neverNow} continuing agents never crossed the 70% threshold. They average <b>${fmtEGP(neverAvg)}</b> per month since launch vs <b>${fmtEGP(unlockAvg)}</b> for agents who unlocked.`,
-      why: `That per-agent gap is the feature's biggest unrealized value. Closing even a quarter of it across the group is worth roughly <b>${fmtEGP(0.25 * neverNow * Math.max(unlockAvg - neverAvg, 0))}</b> a month.`,
-      solution: `A named coaching list with each agent's distance-to-70%, run by supervisors with the same talk track as the zero-open adoption sessions.`,
-      when: `Kick off with the ${NEXT_M} target cycle; review the list after 4 weeks.`,
-      how: `Take the unlock table (section 2) filtered to the "—" rows, rank by revenue gap vs their own before-average, and coach the top 10 first — biggest gaps move the number fastest.`,
+      t: `Rescue program: everyone below the bar — ${TGT_NOV.filter((r) => r[4] < 70).length} sales, 5 telesales (blocked), 32 fulfillment (blocked).`,
+      problem: `Production (Nov 24): <b>${TGT_NOV.filter((r) => r[4] >= 70).length} of ${TGT_NOV.length} sales agents already crossed 70%</b> — ${TGT_NOV.filter((r) => r[4] < 70).length} haven't, and their names with work status are in the table below this card. <b>Telesales can't play at all</b>: their targets mirror the company total. <b>Fulfillment can't either</b>: targets are still flat 70-carton placeholder rows.`,
+      why: `These are the cheapest wins in the system — the sales names below the bar already sell at roughly half to two-thirds of target, so the gap is cadence, not capability. The two blocked channels need their targets fixed before any coaching there can count.`,
+      solution: `<b>Sales:</b> supervisor deals with a weekly number per agent. <b>Telesales:</b> recalibrate to per-agent targets (Tabie & Bisho's Q4 objective). <b>Fulfillment:</b> re-enter targets as cartons, then the same program applies.`,
+      when: `Deals start day 1 of ${NEXT_M} with the day-15 checkpoint; target fixes land before <b>1 ${NEXT_M}</b>.`,
+      how: `Export the names table below (each agent's Nov %, whether they ever unlocked before, and whether they're still working), hand each supervisor only their rows, and track the merged table in ${NEXT_M} — success = the below-bar count halves.`,
       badge: ["strong", "Strong evidence"],
     },
     {
@@ -2127,6 +2129,21 @@ function renderReportInner() {
       `<div><div class="k">How</div><div class="v">${r.how}</div></div>` +
     `</div><span class="ev ${r.badge[0]}">${r.badge[1]}</span></div></div>`
   ).join("");
+  // rescue names: the sales agents below the bar in November, with work status
+  const novBelow = TGT_NOV.filter((r) => r[4] < 70);
+  const rnDays = (id) => { const a = DATA.agents.find((x) => x.agent_id === id); if (!a?.last_active) return [null, "n"]; const d = Math.max(0, Math.round((new Date() - new Date(String(a.last_active).slice(0, 10) + "T00:00:00")) / 86400000)); return [d, d <= 30 ? "a" : d <= 60 ? "s" : "l"]; };
+  const rnLbl = { a: "Active", s: "Slipping", l: "Likely left", n: "No date" };
+  document.getElementById("rescueNames").innerHTML =
+    `<h3 style="margin:16px 0 8px;font-size:15px">The ${novBelow.length} sales agents below the bar (Nov 24) — are they still working?</h3>` +
+    `<div class="unlock-tbl"><table><thead><tr><th>Agent</th><th class="num">Nov target</th><th class="num">Actual</th><th class="num">Nov %</th><th>Unlocked before?</th><th class="num">Last order (days)</th><th>Status</th></tr></thead><tbody>` +
+    novBelow.slice().sort((x, y) => y[4] - x[4]).map((r) => {
+      const [d, st] = rnDays(r[0]);
+      const u = UNLOCK_DAYS[r[0]];
+      return `<tr><td><b>${r[1]}</b></td><td class="num">${fmtEGP(r[2])}</td><td class="num">${fmtEGP(r[3])}</td><td class="num"><b class="pct ${r[4] >= 50 ? "mid" : "down"}">${fmtPct(r[4])}</b></td><td>${u ? "Sep/Oct ✓" : "never"}</td><td class="num">${d ?? "—"}</td><td><span class="st ${st}">${rnLbl[st]}</span></td></tr>`;
+    }).join("") +
+    `</tbody></table></div>` +
+    `<p class="rep-note">"Last order" = days since the agent's newest business activity (data through Nov 22). Statuses use the same working rule as the zero-open table: ≤30 active · 31–60 slipping · >60 likely left.</p>`;
+
   document.getElementById("recoAlso").innerHTML =
     `<b>Also worth a look (not sized):</b> 4 CashVan phones that tap the commission tab but don't match any current delivery agent (likely ex-staff — clean the device list); telesales agents have no governorate mapping yet (they show as "Other"); and a weekly "days-to-unlock" leaderboard inside the Presell PWA.`;
 
@@ -2148,7 +2165,7 @@ function renderReportInner() {
   const grpLabel = { hi: "Unlocked (≥70%)", s: "Near miss (50–70%)", l: "Missed (<50%)", n: "No target set" };
 
   document.getElementById("tgtLede").innerHTML =
-    "The unlock story in section 2 is the tip of the target story. Here is the full picture from the commission engine's own records: <b>who is against which target</b>, who crossed the bar in October (final), where November stands as of 22 Nov, <b>why</b> the rest fall short — and two concrete plans, one to pull the missers over the line and one to turn the achievers into repeaters.";
+    "The unlock story in section 2 is the tip of the target story. Here is the full picture from the commission engine's own records: <b>who is against which target</b>, who crossed the bar in October (final), where November stands as of Nov 24 (production), <b>why</b> the rest fall short — and one concrete plan to turn achievers into repeaters. Pulling the missers over the line is the rescue program (card 2 above).";
 
   // ── how the mechanic works
   document.getElementById("tgtHow").innerHTML =
@@ -2175,6 +2192,9 @@ function renderReportInner() {
       mergedMap.set(id, m);
     }
   const TGT_ALL = [...mergedMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const mTot = (arr) => { const w = arr.filter((r) => r[2] > 0); return { n: w.length, t: w.reduce((s, r) => s + r[2], 0), a: w.reduce((s, r) => s + r[3], 0) }; };
+  const totSep = mTot(TGT_SEP), totOct = mTot(TGT_OCT), totNov = mTot(TGT_NOV);
+  const totCell = (x) => `<td class="num">${fmtEGP(x.t)}</td><td class="num">${fmtEGP(x.a)}</td><td class="num"><b class="pct ${x.a / x.t >= 0.7 ? "up" : x.a / x.t >= 0.5 ? "mid" : "down"}">${fmtPct((x.a / x.t) * 100)}</b></td>`;
   const tgtCell = (mArr, idx) => mArr
     ? `<td class="num">${fmtEGP(mArr[idx])}</td>`
     : `<td class="num" style="color:var(--muted-foreground)">—</td>`;
@@ -2199,7 +2219,7 @@ function renderReportInner() {
       tgtCell(m.oct, 0) + tgtCell(m.oct, 1) + pctCell(m.oct) +
       tgtCell(m.nov, 0) + tgtCell(m.nov, 1) + pctCell(m.nov) +
     `</tr>`).join("") +
-    `</tbody></table></div>` +
+    `<tr><td><b>Totals · agents with a target</b> (Sep ${totSep.n} · Oct ${totOct.n} · Nov ${totNov.n})</td>` + totCell(totSep) + totCell(totOct) + totCell(totNov) + `</tr></tbody></table></div>` +
     `<p class="rep-note">All targets, achieved values and percentages come straight from the commission plan (the engine's own records — not estimates). <b>September covered the full month but the card only shipped on Sep 20</b> — 20 agents still crossed 70% in the 11 days that followed. "No target" = the agent had no plan row that month, so the percentage could not exist — Mostafa kamel sold ${fmtEGP(283380)} in October with no target and couldn't unlock. Green ≥ 70% (unlocked), amber ≥ 50%, red below, "—" = no plan row that month.</p>`;
 
   // ── November (live through 22 Nov) — status cards (full numbers live in the merged table)
@@ -2237,15 +2257,6 @@ function renderReportInner() {
   const streak2 = octHi.filter((r) => UNLOCK_DAYS[r[0]]?.sep != null && UNLOCK_DAYS[r[0]]?.oct != null).length;
   const top5 = octHi.slice(0, 5).map((r) => r[1]).join(", ");
   const plans = [
-    {
-      t: `Pull the ${octNear.length + octMiss.filter((r) => (tgtDays(r[0]) ?? 999) <= 30).length} live non-achievers over the 70% line.`,
-      problem: `In October ${TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70).length} agents with a real target finished under 70% — the closest at 49.7%, and nobody landed in the 50–70 band: the final-week push either lands or the month collapses. November is mid-flight with the same dynamic ahead — ${lateOct.length} of October's unlockers only crossed after day 25.`,
-      why: `Near-miss agents are the cheapest wins in the whole system: they already sell at ~2/3 of target, so the gap is motivation cadence, not capability. Fixing the no-target process gap also un-blocks agents who are literally selling without being allowed to unlock.`,
-      solution: `Three moves. <b>(1)</b> Supervisor deal with each near-miss agent: day-15 checkpoint, weekly pace vs their own target. <b>(2)</b> Sales-ops rule: <b>no agent starts a month without a target row</b> — the ${octNone.length} October cases must not repeat in December. <b>(3)</b> Inactive-month agents go through the zero-open list above first (adoption vs leaver).`,
-      when: `Target-rule fix before <b>1 ${NEXT_M}</b>; deals start day 1 of ${NEXT_M} with the day-15 checkpoint.`,
-      how: `From the October table: sort by "Achieved", coach the closest-to-70% rows first (49.7% leads), and agree one weekly number per agent ("you need ${fmtEGP(200000)} a week"). Track the same table in ${NEXT_M} — success = the under-70% count drops and a real 50–70% band appears mid-month.`,
-      badge: ["strong", "Strong evidence"],
-    },
     {
       t: `Turn the ${octHi.length} October achievers into repeaters — only ${streak2} unlocked both September AND October.`,
       problem: `${octHi.length} agents unlocked in October, but just ${streak2} did it two months running. One-off unlocks don't compound; the OKR is faster target-hitting, every month.`,
