@@ -432,7 +432,7 @@
   .mv .why { max-width: none; }
 
   .rep-chart { height: 300px; margin-top: 14px; }
-  #repTimeline, #repCohorts, #repPaceChart, #repViews, #repDaily, #repEngage, #repEngWeeks, #repWeeks, #repBehHist, #repBehCurve { width: 100%; height: 100%; }
+  #repTimeline, #repCohorts, #repPaceChart, #repViews, #repDaily, #repAchv, #repEngage, #repEngWeeks, #repWeeks, #repBehHist, #repBehCurve { width: 100%; height: 100%; }
   .wf { margin-top: 18px; }
   .wf-row { display: grid; grid-template-columns: 210px 1fr 110px; align-items: center; gap: 12px; height: 40px; }
   .wf-row .lbl { font-size: 13px; color: var(--foreground); text-align: right; }
@@ -640,6 +640,7 @@
     <button class="fb-btn" id="allTimeBtn" aria-pressed="false">All time</button>
     <div class="fb-spacer"></div>
     <label class="switch"><input type="checkbox" id="logScale" checked /> Log scale</label>
+    <button id="xModeBtn" style="border:1px solid var(--border);background:var(--card);border-radius:9999px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--foreground)">X: Revenue EGP</button>
   </div>
 
   <div class="board">
@@ -698,8 +699,10 @@
       <h2>1 · Feature impact by day</h2>
       <p class="lede" id="dailyLede">…</p>
       <div class="rep-apps" id="dailyCards"></div>
-      <div class="rep-chart" style="height:440px"><div id="repDaily"></div></div>
-      <p class="rep-note" id="dailyNote"><b>Surfaces behind each line:</b> Sales agents — the commission progress card in the Presell PWA. Managers — an agent's commission sheet opened from Control Tower's commission auditor. Telesales — the Commissions screen in the Tele-Sales App. Fulfillment — the commission tab in the CashVan App (tracking starts Nov 1 — real ship date). Each line divides the day's opens by the people who opened that day, so new joiners and leavers never fake a trend; hover shows raw opens. Revenue bars use the same FIELD total_revenue convention as the rest of this report.</p>
+      <div class="rep-chart" style="height:340px"><div id="repDaily"></div></div>
+      <h3 style="margin:16px 0 0;font-size:14px;font-weight:700">How much of his target each agent achieved — <span style="color:var(--muted-foreground);font-weight:500">November live vs October final · 70% line marked</span></h3>
+      <div class="rep-chart" style="height:420px"><div id="repAchv"></div></div>
+      <p class="rep-note" id="dailyNote"><b>Surfaces behind each line:</b> Sales agents — the commission progress card in the Presell PWA. Managers — an agent's commission sheet opened from Control Tower's commission auditor. Telesales — the Commissions screen in the Tele-Sales App. Fulfillment — the commission tab in the CashVan App (tracking starts Nov 1 — real ship date). Each line divides the day's opens by the people who opened that day, so new joiners and leavers never fake a trend; hover shows raw opens. The achievement bars come straight from the commission plan — each agent's target vs his delivered actual (November live through Nov 24; gray = his October final for comparison). Revenue totals by month live in section 7's merged table.</p>
     </div>
 
     <div class="rep-section">
@@ -775,7 +778,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v19 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v21 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -951,14 +954,25 @@ const axisFont = { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 1
 /* ── scatter (Recharts conventions: horizontal-only border grid, muted axes,
       white radius-12 tooltip, kpi-palette series) ── */
 let chart;
+  // plan data (production commission engine) — top level: the dash scatter and the report both use it
+  const TGT_SEP = [["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",500000,466629,93.3],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",700000,625024,89.3],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",1500000,1328153,88.5],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",400000,344817,86.2],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",250000,210242,84.1],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",500000,407026,81.4],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",500000,404913,81],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",900000,721719,80.2],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",900000,718142,79.8],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2000000,1525401,76.3],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",1500000,1141041,76.1],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",900000,657656,73.1],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",2000000,1446662,72.3],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",600000,432079,72],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",1500000,1078285,71.9],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",500000,359185,71.8],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",800000,571088,71.4],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",1500000,1068010,71.2],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",500000,353325,70.7],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",1500000,1056018,70.4],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",900000,609409,67.7],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",500000,337926,67.6],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",500000,319794,64],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",800000,502026,62.8],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1500000,855904,57.1],["11160fb3-1c36-4a34-841f-04f58554fe28","mohamed abdo abdul-samad",250000,137245,54.9],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,799510,53.3],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",700000,371418,53.1],["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",700000,362660,51.8],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",700000,354251,50.6],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",250000,117259,46.9],["15de431e-e5f5-4032-a519-2cde3b689e28","Magdy mohamed khodier",500000,187300,37.5],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",500000,156890,31.4],["a256a397-d23b-4eb2-bf49-f12743f6acd0","eslam magdy",250000,78540,31.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",1000000,236126,23.6],["3ccdc7cd-ea0d-4c81-b3c7-72cd2f8a4ada","Muhammed Ahmed Shawki",0,103873,0],["87896ea4-03da-460a-bfa4-795bda5a6f31","Ans mohamed gaber",0,4320,0],["351432c2-c97d-44b6-bcda-395dad4157ae","Fawry Agent",0,15180,0],["7d05f2fd-3f69-47e9-8fa1-359ee0d284bd","moamen ayman mahmoud",0,1685,0],["18a66adb-972a-446d-92ac-990d1705c805","Mohamed shehata mohamed",0,33576,0]]; // production commission_payouts, read 2026-11-25
+  const TGT_OCT = [["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",550000,561892,102.2],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1250000,1259530,100.8],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",500000,474817,95],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",1000000,942261,94.2],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",980000,913007,93.2],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",1000000,923857,92.4],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",800000,738607,92.3],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",980000,896001,91.4],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2500000,2187136,87.5],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",890000,753909,84.7],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",2650000,2206765,83.3],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",2000000,1649275,82.5],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",2000000,1641890,82.1],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",890000,718153,80.7],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",1300000,1014429,78],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",980000,763631,77.9],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",400000,310020,77.5],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,1156851,77.1],["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",750000,565863,75.4],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",900000,675433,75],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",1000000,741336,74.1],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",2600000,1920454,73.9],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",3200000,2338365,73.1],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",2000000,1423005,71.2],["0231d65b-4234-469b-b9ee-391b06cabed7","Ahmed Mohamed Abdelrahman",750000,533059,71.1],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",1200000,852386,71],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",800000,567131,70.9],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",800000,397942,49.7],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",800000,266819,33.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",1000000,283387,28.3],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",800000,217076,27.1],["15de431e-e5f5-4032-a519-2cde3b689e28","Magdy mohamed khodier",1250000,162202,13],["e4b9c24b-09ef-41d2-9642-49ae92bcdab9","Yoseef mohamed mohamed",0,0,0],["b1c12cd7-f3dd-4ac0-8062-66f1d6fee686","ABDALLAH GALAL",0,0,0],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",980000,0,0],["87896ea4-03da-460a-bfa4-795bda5a6f31","Ans mohamed gaber",0,0,0],["351432c2-c97d-44b6-bcda-395dad4157ae","Fawry Agent",0,0,0],["18a66adb-972a-446d-92ac-990d1705c805","Mohamed shehata mohamed",0,0,0],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",0,283380,0],["3ccdc7cd-ea0d-4c81-b3c7-72cd2f8a4ada","Muhammed Ahmed Shawki",0,0,0],["15338dce-4f0e-4b75-8969-c871ff535e25","Muhammed Mahmoud Sayed",0,0,0],["5ff1fffd-b981-4a8c-aaf5-f68a02427e59","Shehab Hussien Mohamed",0,0,0]]; // production commission_payouts, read 2026-11-25
+  const TGT_NOV = [["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",250000,237827,95.1],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",650000,520149,80],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",1500000,1156335,77.1],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",900000,689016,76.6],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",750000,564939,75.3],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",800000,601190,75.1],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",600000,435352,72.6],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",800000,577968,72.2],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",750000,533999,71.2],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",800000,567279,70.9],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",1500000,1008058,67.2],["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",1000000,671398,67.1],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",500000,335046,67],["0231d65b-4234-469b-b9ee-391b06cabed7","Ahmed Mohamed Abdelrahman",1000000,657596,65.8],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",2500000,1613740,64.5],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",800000,506508,63.3],["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",550000,341990,62.2],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1500000,918393,61.2],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",2000000,1217529,60.9],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",750000,448251,59.8],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",2500000,1471527,58.9],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,875856,58.4],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2250000,1305707,58],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",1000000,575622,57.6],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",2000000,1142398,57.1],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",1500000,847368,56.5],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",3000000,1654949,55.2],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",1000000,520325,52],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",1500000,771346,51.4],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",2500000,1170908,46.8],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",550000,255401,46.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",750000,90619,12.1],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",50000,3190,6.4]]; // production commission_payouts, read 2026-11-25
+  const fmtPct = (v) => (v == null ? "—" : (Math.round(v * 10) / 10) + "%");
+let xMode = "egp"; // scatter X lens: "egp" | "pct"
 function drawScatter() {
-  const rows = visibleAgents();
-  const showLog = filters.log && rows.length && rows.some((r) => r.impact > 0);
+  const rowsAll = visibleAgents();
+  const pctMode = xMode === "pct";
+  const novById = Object.fromEntries(TGT_NOV.map((r) => [r[0], r]));
+  const rows = pctMode
+    ? rowsAll.filter((r) => novById[r.a.agent_id]).map((r) => ({ ...r, pct: novById[r.a.agent_id][4], tNov: novById[r.a.agent_id][2], aNov: novById[r.a.agent_id][3] }))
+    : rowsAll;
+  const showLog = filters.log && !pctMode && rows.length && rows.some((r) => r.impact > 0);
   const pts = rows
     .filter((r) => !showLog || r.impact > 0)
     .map((r) => ({
       name: r.a.agent_name,
-      value: [showLog ? r.impact : Math.max(r.impact, 0), r.clicks],
+      value: [pctMode ? r.pct : (showLog ? r.impact : Math.max(r.impact, 0)), r.clicks],
       gov: r.gov,
       raw: r,
       itemStyle: { color: govColor(r.gov), opacity: 0.85 },
@@ -992,16 +1006,16 @@ function drawScatter() {
       formatter: (p) => {
         const r = p.data.raw, seg = SEG();
         return `<b>${p.name}</b> <span style="color:rgb(98,116,142)">· ${r.gov}</span><br/>` +
-          `${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>` +
+          (pctMode ? `% of Nov target (live): <b>${fmtPct(r.pct)}</b> · target ${fmtEGP(r.tNov)} · actual ${fmtEGP(r.aNov)}<br/>` : `${seg.impactKpi}: <b>${fmtEGP(r.impact)} EGP</b><br/>`) +
           `${seg.utilShort}: <b>${fmtInt(r.clicks)}</b> · ${seg.ordersLbl}: ${fmtInt(r.orders)} · ${seg.visitsLbl}: ${fmtInt(r.visits)}<br/>` +
           `<span style="color:var(--brand)">click to open monthly story</span>`;
       },
     },
     xAxis: {
-      type: showLog ? "log" : "value", name: SEG().impactName, nameLocation: "middle",
-      nameGap: 28, min: showLog ? 1 : 0, max: showLog ? undefined : Math.ceil(maxI * 1.06),
+      type: "value", name: pctMode ? "% of Nov target (live Nov 24)" : SEG().impactName, nameLocation: "middle",
+      nameGap: 28, min: pctMode ? 0 : (showLog ? 1 : 0), max: pctMode ? Math.ceil(Math.max(110, maxI * 1.06)) : (showLog ? undefined : Math.ceil(maxI * 1.06)),
       nameTextStyle: { ...axisFont },
-      axisLabel: { ...axisFont, formatter: (v) => fmtEGP(v) },
+      axisLabel: { ...axisFont, formatter: (v) => (pctMode ? v + "%" : fmtEGP(v)) },
       axisLine: { lineStyle: { color: "rgb(226,232,240)" } },
       axisTick: { show: false },
       splitLine: { show: false },
@@ -1022,7 +1036,7 @@ function drawScatter() {
         silent: true, symbol: "none", animation: false,
         lineStyle: { color: "rgb(226,232,240)", type: "dashed", width: 1 },
         label: { fontFamily: "'IBM Plex Sans Arabic', sans-serif", fontSize: 11, color: "rgb(98,116,142)", formatter: (p) => "median " + fmtEGP(p.value) },
-        data: [{ yAxis: medC }, { xAxis: medI }],
+        data: pctMode ? [{ yAxis: medC }, { xAxis: 70, label: { show: true, formatter: "70% unlock", fontSize: 10, color: "rgb(38,60,84)" } }] : [{ yAxis: medC }, { xAxis: medI }],
       } : undefined,
       markArea: pts.length > 2 ? {
         silent: true, animation: false,
@@ -1041,7 +1055,7 @@ function drawScatter() {
   }, { notMerge: true });
 
   document.getElementById("railSub").textContent =
-    `${rows.length} in view` + (dropped ? ` (+${dropped} at 0)` : "");
+    `${rows.length} in view` + (dropped ? ` (+${dropped}${pctMode ? " without Nov target" : " at 0"})` : "");
   document.getElementById("chartTitle").textContent = `${SEG().impactKpi} × ${SEG().utilName}`;
 }
 
@@ -1307,6 +1321,11 @@ function wire() {
     renderAll();
   });
   document.getElementById("logScale").addEventListener("change", (e) => { filters.log = e.target.checked; drawScatter(); });
+  document.getElementById("xModeBtn").addEventListener("click", () => {
+    xMode = xMode === "egp" ? "pct" : "egp";
+    document.getElementById("xModeBtn").textContent = xMode === "pct" ? "X: % of target" : "X: Revenue EGP";
+    drawScatter();
+  });
   document.getElementById("agentSearch").addEventListener("input", drawRail);
   document.getElementById("showAll").addEventListener("click", () => { filters.hidden.clear(); renderAll(); });
   document.getElementById("hideAll").addEventListener("click", () => {
@@ -1504,46 +1523,61 @@ function renderReportInner() {
   const ann = { silent: true, symbol: "none", lineStyle: { color: "rgb(154,179,187)", type: "dashed", width: 1 }, label: { show: true, position: "insideEndTop", fontSize: 10, color: "rgb(98,116,142)", formatter: (p) => p.name || "" }, data: [
     { xAxis: "Sep 20", name: "launch" }, { xAxis: "Oct 1", name: "Oct" }, { xAxis: "Nov 1", name: "Nov" }, { xAxis: "Nov 22", name: "data cut" },
   ] };
+
   const daily = repChart("repDaily");
   daily.setOption({
     animation: false,
-    axisPointer: { link: [{ xAxisIndex: "all" }] },
-    legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Sales agents — Presell card", "Managers — Commission auditor", "Telesales — Commissions screen", "Fulfillment — CashVan tab", "Field revenue (EGP)"] },
+    legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["Sales agents — Presell card", "Managers — Commission auditor", "Telesales — Commissions screen", "Fulfillment — CashVan tab"] },
     tooltip: {
       trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12,
       textStyle: { fontSize: 12, color: "rgb(2,6,24)" },
       formatter: (ps) => {
         let out = `<b>${ps[0].axisValue}</b><br/>`;
         for (const p of ps) {
-          if (p.seriesName === "Field revenue (EGP)") {
-            out += `<span style="color:${p.color}">■</span> Field revenue: <b>${fmtEGP(p.value)}</b><br/>`;
-          } else if (p.data && typeof p.data === "object") {
-            out += `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${p.data.value}</b> opens/person · <b>${fmtInt(p.data.raw)}</b> opens · <b>${p.data.users}</b> ${p.data.users === 1 ? "person" : "people"}<br/>`;
-          } else {
-            out += `<span style="color:${p.color}">●</span> ${p.seriesName}: — (no data yet)<br/>`;
-          }
+          const d = p.data && typeof p.data === "object" ? p.data : null;
+          out += d
+            ? `<span style="color:${p.color}">●</span> ${p.seriesName}: <b>${d.value}</b> opens/person · <b>${fmtInt(d.raw)}</b> opens · <b>${d.users}</b> ${d.users === 1 ? "person" : "people"}<br/>`
+            : `<span style="color:${p.color}">●</span> ${p.seriesName}: — (no data yet)<br/>`;
         }
         return out;
       },
     },
-    grid: [
-      { left: 56, right: 20, top: 48, height: 246 },
-      { left: 56, right: 20, top: 344, height: 64 },
-    ],
-    xAxis: [
-      { type: "category", gridIndex: 0, data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
-      { type: "category", gridIndex: 1, data: dayLabels, axisLabel: { show: false }, axisTick: { show: false }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } } },
-    ],
-    yAxis: [
-      { type: "value", gridIndex: 0, name: "opens / person that day", nameTextStyle: { ...axisFont, fontSize: 10, color: "rgb(98,116,142)" }, axisLabel: { ...axisFont, formatter: (v) => (Number.isInteger(v) ? v : v.toFixed(1)) }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
-      { type: "value", gridIndex: 1, axisLabel: { show: false }, splitLine: { show: false } },
-    ],
+    grid: { left: 56, right: 20, top: 48, height: 246 },
+    xAxis: { type: "category", data: dayLabels, axisLabel: { ...axisFont, fontSize: 10, interval: 0, formatter: (v, i) => (i % 7 === 0 ? v : "") }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", name: "opens / person that day", nameTextStyle: { ...axisFont, fontSize: 10, color: "rgb(98,116,142)" }, axisLabel: { ...axisFont, formatter: (v) => (Number.isInteger(v) ? v : v.toFixed(1)) }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
     series: [
-      { name: "Sales agents — Presell card", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: salesRate, smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(23,127,142)" }, itemStyle: { color: "rgb(23,127,142)" }, markLine: ann },
-      { name: "Managers — Commission auditor", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: mgrRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(83,163,242)" }, itemStyle: { color: "rgb(83,163,242)" } },
-      { name: "Telesales — Commissions screen", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: teleRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(144,106,229)" }, itemStyle: { color: "rgb(144,106,229)" } },
-      { name: "Fulfillment — CashVan tab", type: "line", xAxisIndex: 0, yAxisIndex: 0, data: fulRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(237,153,14)" }, itemStyle: { color: "rgb(237,153,14)" } },
-      { name: "Field revenue (EGP)", type: "bar", xAxisIndex: 1, yAxisIndex: 1, data: REV83, barWidth: "72%", itemStyle: { color: "rgba(23,127,142,0.30)" } },
+      { name: "Sales agents — Presell card", type: "line", data: salesRate, smooth: true, showSymbol: false, lineStyle: { width: 2.5, color: "rgb(23,127,142)" }, itemStyle: { color: "rgb(23,127,142)" }, markLine: ann },
+      { name: "Managers — Commission auditor", type: "line", data: mgrRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(83,163,242)" }, itemStyle: { color: "rgb(83,163,242)" } },
+      { name: "Telesales — Commissions screen", type: "line", data: teleRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(144,106,229)" }, itemStyle: { color: "rgb(144,106,229)" } },
+      { name: "Fulfillment — CashVan tab", type: "line", data: fulRate, smooth: true, showSymbol: false, lineStyle: { width: 2, color: "rgb(237,153,14)" }, itemStyle: { color: "rgb(237,153,14)" } },
+    ],
+  }, { notMerge: true });
+
+  // per-agent achievement: how much of HIS target he achieved — Nov live vs Oct final
+  const achvRows = [...TGT_NOV].sort((a, b) => b[4] - a[4]);
+  const achvOct = Object.fromEntries(TGT_OCT.map((r) => [r[0], r[4]]));
+  const achvColor = (v) => (v >= 70 ? "rgb(0,163,109)" : v >= 50 ? "rgb(220,163,49)" : "rgb(244,124,107)");
+  const achv = repChart("repAchv");
+  achv.setOption({
+    animation: false,
+    legend: { top: 0, left: 4, itemWidth: 14, textStyle: { ...axisFont }, data: ["November (live Nov 24)", "October (final)"] },
+    tooltip: {
+      trigger: "axis", backgroundColor: "rgb(255,255,255)", borderColor: "rgb(226,232,240)", borderRadius: 12,
+      textStyle: { fontSize: 12, color: "rgb(2,6,24)" },
+      formatter: (ps) => {
+        const name = ps[0].axisValue;
+        const nov = TGT_NOV.find((r) => r[1] === name);
+        let out = `<b>${name}</b> — target ${nov ? fmtEGP(nov[2]) : "—"}<br/>`;
+        for (const p of ps) out += `<span style="color:${p.color}">■</span> ${p.seriesName}: <b>${fmtPct(p.value)}</b><br/>`;
+        return out;
+      },
+    },
+    grid: { left: 60, right: 20, top: 44, bottom: 110 },
+    xAxis: { type: "category", data: achvRows.map((r) => r[1]), axisLabel: { ...axisFont, fontSize: 9, interval: 0, rotate: 55 }, axisLine: { lineStyle: { color: "rgb(226,232,240)" } }, axisTick: { show: false } },
+    yAxis: { type: "value", axisLabel: { ...axisFont, formatter: (v) => v + "%" }, splitLine: { lineStyle: { color: "rgb(226,232,240)" } } },
+    series: [
+      { name: "November (live Nov 24)", type: "bar", data: achvRows.map((r) => ({ value: r[4], target: r[2], actual: r[3] })), barMaxWidth: 16, itemStyle: { color: (p) => achvColor(p.value) }, markLine: { silent: true, symbol: "none", lineStyle: { color: "rgb(38,60,84)", type: "dashed", width: 1.5 }, label: { show: true, position: "insideEndTop", formatter: "70% unlock line", fontSize: 10, color: "rgb(38,60,84)" }, data: [{ yAxis: 70 }] } },
+      { name: "October (final)", type: "bar", data: achvRows.map((r) => achvOct[r[0]] ?? 0), barMaxWidth: 16, itemStyle: { color: "rgb(154,179,187)" } },
     ],
   }, { notMerge: true });
 
@@ -1571,7 +1605,7 @@ function renderReportInner() {
     `<div class="rep-kpi"><div class="l">Telesales · Commissions screen</div><div class="v">${fmtInt(TELE_VIEWS.reduce((a, b) => a + b, 0))}</div><div class="d" style="color:var(--muted-foreground)">screen views · peak day ${Math.max(...TELE_AGENTS)} agents</div></div>` +
     `<div class="rep-kpi"><div class="l">Fulfillment · CashVan tab</div><div class="v">${fmtInt(FUL_DAILY.reduce((a, b) => a + b, 0))}</div><div class="d" style="color:var(--muted-foreground)">tab taps since Nov 1 · peak day ${Math.max(...FUL_AGENTS)} agents</div></div>`;
   document.getElementById("dailyLede").innerHTML =
-    `Four lines, four surfaces — so nobody mistakes one screen for another. Three count <b>agents</b> opening their commission view in their own app (Presell progress card, Tele-Sales Commissions screen, CashVan commission tab); the fourth counts <b>managers</b> pulling up an agent's commission sheet in Control Tower's auditor. Every line is <b>opens per person who opened that day</b> — hover any day for raw totals — and the bars underneath are that day's field revenue, so the opens→money relationship is one glance away. Lines start when each surface shipped: <b>Sep 20</b> (launch), late Sep (telesales), <b>Nov 1</b> (fulfillment — a real start, not a gap).${stTxt ? ` <b>Standout days:</b> ${stTxt}.` : ""}`;
+    `Four lines, four surfaces — so nobody mistakes one screen for another. Three count <b>agents</b> opening their commission view in their own app (Presell progress card, Tele-Sales Commissions screen, CashVan commission tab); the fourth counts <b>managers</b> pulling up an agent's commission sheet in Control Tower's auditor. Every line is <b>opens per person who opened that day</b> — hover any day for raw totals — and the bars underneath show <b>how much of his own target each agent achieved</b> — November live against October final with the 70% line marked, so "who is behind, and by how much" is one glance per agent. Lines start when each surface shipped: <b>Sep 20</b> (launch), late Sep (telesales), <b>Nov 1</b> (fulfillment — a real start, not a gap).${stTxt ? ` <b>Standout days:</b> ${stTxt}.` : ""}`;
 
   // ════════ SECTION 2 — unlock-day table (fastest first, colored, weekly stats, derived table) ════════
   // derived crossings computed from daily actuals vs commission-plan targets (see repDerived note)
@@ -1912,11 +1946,6 @@ function renderReportInner() {
     li(`<b>Needs a push now:</b> 32 target rows exist for 47 tracked delivery agents — and until real carton targets are entered, judge fulfillment on delivered volume (section 4's before/after: +31%).`),
   ].map(li).join("");
 
-  // plan data (from the commission engine) — hoisted above the movers so both sections can use it
-  const TGT_SEP = [["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",500000,466629,93.3],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",700000,625024,89.3],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",1500000,1328153,88.5],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",400000,344817,86.2],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",250000,210242,84.1],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",500000,407026,81.4],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",500000,404913,81],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",900000,721719,80.2],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",900000,718142,79.8],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2000000,1525401,76.3],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",1500000,1141041,76.1],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",900000,657656,73.1],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",2000000,1446662,72.3],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",600000,432079,72],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",1500000,1078285,71.9],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",500000,359185,71.8],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",800000,571088,71.4],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",1500000,1068010,71.2],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",500000,353325,70.7],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",1500000,1056018,70.4],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",900000,609409,67.7],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",500000,337926,67.6],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",500000,319794,64],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",800000,502026,62.8],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1500000,855904,57.1],["11160fb3-1c36-4a34-841f-04f58554fe28","mohamed abdo abdul-samad",250000,137245,54.9],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,799510,53.3],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",700000,371418,53.1],["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",700000,362660,51.8],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",700000,354251,50.6],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",250000,117259,46.9],["15de431e-e5f5-4032-a519-2cde3b689e28","Magdy mohamed khodier",500000,187300,37.5],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",500000,156890,31.4],["a256a397-d23b-4eb2-bf49-f12743f6acd0","eslam magdy",250000,78540,31.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",1000000,236126,23.6],["3ccdc7cd-ea0d-4c81-b3c7-72cd2f8a4ada","Muhammed Ahmed Shawki",0,103873,0],["87896ea4-03da-460a-bfa4-795bda5a6f31","Ans mohamed gaber",0,4320,0],["351432c2-c97d-44b6-bcda-395dad4157ae","Fawry Agent",0,15180,0],["7d05f2fd-3f69-47e9-8fa1-359ee0d284bd","moamen ayman mahmoud",0,1685,0],["18a66adb-972a-446d-92ac-990d1705c805","Mohamed shehata mohamed",0,33576,0]]; // production commission_payouts, read 2026-11-25
-  const TGT_OCT = [["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",550000,561892,102.2],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1250000,1259530,100.8],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",500000,474817,95],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",1000000,942261,94.2],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",980000,913007,93.2],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",1000000,923857,92.4],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",800000,738607,92.3],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",980000,896001,91.4],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2500000,2187136,87.5],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",890000,753909,84.7],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",2650000,2206765,83.3],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",2000000,1649275,82.5],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",2000000,1641890,82.1],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",890000,718153,80.7],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",1300000,1014429,78],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",980000,763631,77.9],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",400000,310020,77.5],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,1156851,77.1],["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",750000,565863,75.4],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",900000,675433,75],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",1000000,741336,74.1],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",2600000,1920454,73.9],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",3200000,2338365,73.1],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",2000000,1423005,71.2],["0231d65b-4234-469b-b9ee-391b06cabed7","Ahmed Mohamed Abdelrahman",750000,533059,71.1],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",1200000,852386,71],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",800000,567131,70.9],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",800000,397942,49.7],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",800000,266819,33.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",1000000,283387,28.3],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",800000,217076,27.1],["15de431e-e5f5-4032-a519-2cde3b689e28","Magdy mohamed khodier",1250000,162202,13],["e4b9c24b-09ef-41d2-9642-49ae92bcdab9","Yoseef mohamed mohamed",0,0,0],["b1c12cd7-f3dd-4ac0-8062-66f1d6fee686","ABDALLAH GALAL",0,0,0],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",980000,0,0],["87896ea4-03da-460a-bfa4-795bda5a6f31","Ans mohamed gaber",0,0,0],["351432c2-c97d-44b6-bcda-395dad4157ae","Fawry Agent",0,0,0],["18a66adb-972a-446d-92ac-990d1705c805","Mohamed shehata mohamed",0,0,0],["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",0,283380,0],["3ccdc7cd-ea0d-4c81-b3c7-72cd2f8a4ada","Muhammed Ahmed Shawki",0,0,0],["15338dce-4f0e-4b75-8969-c871ff535e25","Muhammed Mahmoud Sayed",0,0,0],["5ff1fffd-b981-4a8c-aaf5-f68a02427e59","Shehab Hussien Mohamed",0,0,0]]; // production commission_payouts, read 2026-11-25
-  const TGT_NOV = [["4c44432d-afa3-462b-be16-965ed01590f8","Mostafa kamel mohamed",250000,237827,95.1],["084566af-e8de-4d4c-98e0-617703e2c750","Ahmed Shaaban Mohamed Mohamed",650000,520149,80],["5ecb776d-7ef4-4891-8a1e-e5ddcb40fdec","Taha Mohamed Ahmed",1500000,1156335,77.1],["2df4fd0a-2ef0-4b94-897e-1ad421d3e4a8","Mahmoud Hamdi Mohamed Haridi",900000,689016,76.6],["c7db46be-350a-4265-9664-0ac6439fc37c","Abdul-monem ahmed abdul-monem",750000,564939,75.3],["cc1a0933-2b0d-43cd-a801-ff0982d338e8","Mohamed Sami Mohamed Abdul-Hamid",800000,601190,75.1],["77a9215a-853d-46fc-8c07-5258ec6e2883","Mahmoud Magdy Gaber Mohamed",600000,435352,72.6],["026bdbae-4396-4e07-a936-8d3140177d46","mohamed morsy el-sayed",800000,577968,72.2],["45fd4ff7-9f31-434d-819f-aee81284ad40","Marawan Rashid Mohamed El-sayed",750000,533999,71.2],["6643898d-c2ca-4224-be0d-6aa868f7d0da","Tariq Hussein Mohamed Kamal",800000,567279,70.9],["e5bb73bd-b8a2-4af6-8d1d-89e536501004","Wael Mogahed Mohamed El-Gazzar",1500000,1008058,67.2],["1d51b365-8610-4264-b204-7006d822a5eb","kareem saeed abdallah",1000000,671398,67.1],["b3591b05-4877-434d-b227-9201369fb09f","Mohamed Mahmoud ali Ammar",500000,335046,67],["0231d65b-4234-469b-b9ee-391b06cabed7","Ahmed Mohamed Abdelrahman",1000000,657596,65.8],["2bf7400b-7013-4d2d-9de7-9c1bd66a3f78","Amr abdul-aziz",2500000,1613740,64.5],["4e2bd32b-a1d8-4bc4-9c6e-6236d63af11b","Mohamed Eid Ismail",800000,506508,63.3],["ee37ae0e-094f-4c40-9925-16d5fc430111","Awad saeed zayed",550000,341990,62.2],["b632027f-fb37-404c-8968-3fab667237db","mohamed hamdi mohamed",1500000,918393,61.2],["0749b8a6-2241-4821-9d90-a1a57f0c7b65","Ahmed wagdy",2000000,1217529,60.9],["6da2d2d8-e5d1-4161-a46f-9c05aaa25268","SAFY ALDEEN TALAAT",750000,448251,59.8],["5791abfd-38d4-4cc4-b7d4-0c9573310227","Hassan mokhtar hassan",2500000,1471527,58.9],["1aad7676-c772-4b68-811f-4634feb48d6b","mohamed ahmed ibrahim",1500000,875856,58.4],["60041172-77df-4397-8f1d-e34fcd32cade","Mina Girgis Fahim Hanna",2250000,1305707,58],["30c735da-2b4b-4236-a771-d6c2f3c4da2e","Eslam tarek elsayed",1000000,575622,57.6],["6f7d642f-235f-49b8-af01-c2a6c6decfec","Mostafa Abdul-rahman Muhammed El-hefnawi",2000000,1142398,57.1],["620f139b-ab4e-48ca-a7a0-26951b57fd15","MOSTAFA MOHAMED",1500000,847368,56.5],["9ab06bca-73c0-4b9d-a77b-d4077b401e87","Abbas Lotfy Abbas",3000000,1654949,55.2],["790df0a7-cad1-49c7-a7bf-bb1cfdc78a68","Abdul-maged Ibrahim Abdul-aziz",1000000,520325,52],["233e1f04-1796-4c73-aadc-f446e8217b83","Youssef Mohamed Elsayed Morsi",1500000,771346,51.4],["5bf5c436-a1b3-4967-a66c-38fffc2a5eb7","mahmoud ibrahim",2500000,1170908,46.8],["f6d2b086-e08a-4de5-8ccf-ec09f3397f92","Alaa Ali Abdul-hamid",550000,255401,46.4],["d1efa6ba-0b9f-4bdb-afd6-64db921e79f5","salem ahmed",750000,90619,12.1],["e9e0ed1e-2e11-46b1-a8c1-f379c79048a7","Ahmed khames mohamed",50000,3190,6.4]]; // production commission_payouts, read 2026-11-25
-  const fmtPct = (v) => (v == null ? "—" : (Math.round(v * 10) / 10) + "%");
   // ════════ SECTION 6 — movers: top 5 up + top 5 down, ranked by %, values with units, reasons + actions
   const mUnit = (a) => (a.agent_type === "delivery_agent" ? { k: "delivered", unit: "cartons" } : { k: "impact", unit: "EGP" });
   const moversRows = (DATA.agents ?? []).map((a) => {
