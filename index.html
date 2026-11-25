@@ -707,7 +707,7 @@
       <p class="lede" id="unlockLede">…</p>
       <div class="rep-apps" id="unlockStats"></div>
       <div class="unlock-tbl" id="repUnlocks"></div>
-      <p class="rep-note">Unlock day = the first day of the month the agent's progress card showed ≥70% of target (the app's own number). The 70% mechanic exists only in the Presell PWA today — for Tele-Sales and CashVan agents see the plan-derived table below. <b>"Carried"</b>: the app emits the ≥70% flag once a day — an agent already above 70% when October closed only gets flagged on Nov 1, so the crossing is credited to October and shown as "crossed Oct — flag Nov 1" in the October column.</p>
+      <p class="rep-note">Unlock day = the first day of the month the agent's progress card showed ≥70% of target (the app's own number). The 70% unlock event exists only in the Presell PWA today — both other apps already show commission progress, and card 4 asks for their unlock event; for their agents see the plan-derived table below. <b>"Carried"</b>: the app emits the ≥70% flag once a day — an agent already above 70% when October closed only gets flagged on Nov 1, so the crossing is credited to October and shown as "crossed Oct — flag Nov 1" in the October column.</p>
       <div id="repDerived"></div>
     </div>
 
@@ -775,7 +775,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v16 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v17 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1696,7 +1696,7 @@ function renderReportInner() {
     DERIVED.map((r) =>
       `<tr><td><b>${r.name}</b></td><td>${r.ch}</td><td>${r.month}</td><td class="num">${r.ch === "Telesales" ? fmtEGP(r.target) : fmtInt(r.target) + " cartons"}</td><td>${derCell(r)}</td></tr>`
     ).join("") + `</tbody></table></div>` +
-    `<p class="rep-note"><b>How this is derived:</b> these apps don't show the 70% progress card yet, so there is no unlock event — the day here is the first day the agent's cumulative month actual (telesales delivered orders value from the analytics tables) reached <b>70% of their commission-plan target</b>; November counts through Nov 22 (analytics daily data). <b>Fulfillment: omitted rather than faked</b> — production targets for October AND November are still the flat 70-carton placeholder rows (pre-carton era), and actuals run 100×+ above them, so no honest per-agent crossing exists until targets are re-entered as cartons (the runbook from the carton switch). <b>Telesales: nobody can cross</b> — October targets mirror the company total (41M split across 5 agents) and November mirrors 30M, so 2–12% attainment is a target-calibration finding, not a performance one. Same pattern, one fix: per-agent targets.</p>`;
+    `<p class="rep-note"><b>How this is derived:</b> both apps already show commission progress — the only missing piece is the unlock event (card 4). Until it ships, the day here is derived: the first day the agent's cumulative month actual (telesales delivered orders value from the analytics tables) reached <b>70% of their commission-plan target</b>; November counts through Nov 22 (analytics daily data). <b>Fulfillment: omitted rather than faked</b> — production targets for October AND November are still the flat 70-carton placeholder rows (pre-carton era), and actuals run 100×+ above them, so no honest per-agent crossing exists until targets are re-entered as cartons (the runbook from the carton switch). <b>Telesales: nobody can cross</b> — October targets mirror the company total (41M split across 5 agents) and November mirrors 30M, so 2–12% attainment is a target-calibration finding, not a performance one. Same pattern, one fix: per-agent targets.</p>`;
 
   // ════════ SECTION 2.5 — unlock behavior (histogram + pre/post engagement)
   const behMonths = { sep: { start: 0, len: 30 }, oct: { start: 30, len: 31 }, nov: { start: 61, len: 22 } };
@@ -1820,7 +1820,7 @@ function renderReportInner() {
   document.getElementById("weekLede").innerHTML =
     `The full-month picture, every channel: for each <b>continuing agent</b> (had activity in both windows), the <b>before</b> average is Jul + Aug ÷ 2 and the <b>after</b> average is Sep + Oct + November ÷ ${AFTER_DIV} (November prorated to Nov 22). Field sales: <b>${f3.improved} of ${f3.rows.length} continuing agents improved</b> vs their own before-average (${f3.declined} declined, ${f3.flat} within ±5%) — and the same honest split is shown per channel below and in the chart. October was our <b>best revenue month so far</b> and the card's first full month — whether that's the feature or the market, this per-agent split is the evidence base, and the names behind it are in section 6.`;
   document.getElementById("weekNote").innerHTML =
-    `<b>How to read this:</b> per-agent averages remove roster noise (leavers and joiners don't move these numbers). ±5% counts as flat so one good Friday can't fake a trend. Continuing-only means agents active in both windows — part-months never compare against full ones. Telesales and fulfillment have no commission card yet (their <b>plan-derived</b> crossings are in section 2), so their before/after reflects the channel's own momentum, not card adoption. November is prorated through Nov 22 and will grow as the month closes.`;
+    `<b>How to read this:</b> per-agent averages remove roster noise (leavers and joiners don't move these numbers). ±5% counts as flat so one good Friday can't fake a trend. Continuing-only means agents active in both windows — part-months never compare against full ones. Telesales and fulfillment agents already see commission progress in their apps; the unlock event is the only missing piece (card 4). Until it ships, we can't split their before/after by unlockers, so it reads as channel momentum. November is prorated through Nov 22 and will grow as the month closes.`;
 
   // ════════ SECTION 4 — engagement per channel: counts, weekly stack, who needs a push
   // Presell EU extras (project 3854972, Sep 1 – Nov 22): celebration + popup events
@@ -2092,13 +2092,13 @@ function renderReportInner() {
       badge: ["check", "Check first"],
     },
     {
-      t: `Bring the unlock mechanic to the Tele-Sales and CashVan apps.`,
-      problem: `Telesales agents opened their Commissions screen <b>1,625 times</b> and fulfillment agents tapped the commission tab <b>284 times</b> — but neither app shows the 70% progress card, and fulfillment's plan targets are still placeholder rows, so their unlock day can't be tracked and the motivation effect is untested on 2 of 3 channels.`,
-      why: `Presell's per-agent lift (+11%) suggests real upside; the same pattern almost certainly transfers. Today those agents see their commission <b>after</b> the month — no mid-month pull.`,
-      solution: `Ship the progress card + unlock event to both apps, reusing the presell card spec.`,
-      when: `Next app release train (both apps report to the US Mixpanel zone, so the event wiring is one pattern).`,
-      how: `Add a <b>commission_unlocked</b> event in each app; this report will then pick up their unlock days automatically with zero extra reporting work.`,
-      badge: ["strong", "Strong evidence"],
+      t: `Instrument the unlock moment — one event in the Tele-Sales and CashVan apps.`,
+      problem: `Both apps <b>already show commission progress</b> (Telesales: Commissions screen, 1,625 views; Fulfillment: commission tab, 284 taps) — but neither fires an unlock event at the 70% crossing, so this report can't record their unlock days the way it does for Presell.`,
+      why: `Without the event, their unlock story stays plan-derived and their engagement-to-revenue split stays invisible — two of the three channels sit outside the mechanic's measurement.`,
+      solution: `Fire one event — <b>commission_unlocked</b> with the agent id — at the 70% crossing in both apps, mirroring Presell's celebration event.`,
+      when: `Next release of either app — the wiring is one pattern (both report to the US Mixpanel zone).`,
+      how: `This report picks their unlock days up automatically the moment the event exists — zero extra reporting work.`,
+      badge: ["check", "Quick win"],
     },
     {
       t: `Give the feature a fair revenue verdict: December vs October, like-for-like.`,
@@ -2172,7 +2172,7 @@ function renderReportInner() {
     `<h3 style="margin:14px 0 8px;font-size:16px">How an agent meets the target</h3>` +
     `<div class="rep-apps">` +
       `<div class="rep-kpi"><div class="l">1 · Target set</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Supervisor sets each agent's monthly EGP target in Control Tower's commission plan</div></div>` +
-      `<div class="rep-kpi"><div class="l">2 · Live progress</div><div class="v">%</div><div class="d" style="color:var(--muted-foreground)">The Presell card shows the agent's own achievement % all month, updated with every delivered order</div></div>` +
+      `<div class="rep-kpi"><div class="l">2 · Live progress</div><div class="v">%</div><div class="d" style="color:var(--muted-foreground)">Each app shows the agent's own achievement % all month — Presell progress card, Tele-Sales Commissions screen, CashVan commission tab — updated with every delivered order</div></div>` +
       `<div class="rep-kpi"><div class="l">3 · 70% unlock</div><div class="v">≥70%</div><div class="d" style="color:var(--muted-foreground)">Crossing 70% of target unlocks the commission — 27 of 42 field agents did it in October</div></div>` +
       `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (card 6 above)</div></div>` +
     `</div>`;
@@ -2280,12 +2280,12 @@ function renderReportInner() {
     ).join("");
 
   document.getElementById("tgtNote").innerHTML =
-    `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts), read from the <b>production</b> database — the same source the apps read — October rows are the concluded month, November rows are live through Nov 24, read from the <b>production</b> commission database — the same source the apps read (refreshed every 15 min) — and <b>are not a final verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (card 4 above), so their target story can't be told per-agent until those apps ship the card.`;
+    `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts), read from the <b>production</b> database — the same source the apps read — October rows are the concluded month, November rows are live through Nov 24, read from the <b>production</b> commission database — the same source the apps read (refreshed every 15 min) — and <b>are not a final verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (card 4 above asks for exactly that — one event), so their unlock days stay plan-derived until the event ships.`;
 
   // manager enablement — Control Tower enhancements for the people who act on this report
   document.getElementById("mgrEnable").innerHTML =
     `<h3 style="margin:26px 0 8px;font-size:18px">Manager enablement — Control Tower enhancements worth building</h3>` +
-    `<p class="lede">Managers already pull up agent commission sheets <b>1,073 times</b> — these builds aim that attention at the right agents at the right moment. The agent-facing progress screens (T9–T11) exist as tickets; these are their manager-facing complements.</p>` +
+    `<p class="lede">Managers already pull up agent commission sheets <b>1,073 times</b> — these builds aim that attention at the right agents at the right moment. The agent-facing progress screens are already live in all three apps; these are their manager-facing complements.</p>` +
     `<div class="unlock-tbl"><table><thead><tr><th>Enhancement</th><th>For</th><th>The data behind it</th></tr></thead><tbody>` +
     [
       ["Day-15 under-bar list", "Sales leadership", `One screen: every agent under a chosen pace on day 15 (configurable to any day) with the exact gap to 70% — replaces hunting through the auditor, and feeds the checkpoint program.`],
@@ -2303,7 +2303,7 @@ function renderReportInner() {
     `<b>Before</b> = Jul–Aug; <b>after</b> = Sep–Nov; <b>continuing agents</b> had revenue in both periods, so part months never compare against full ones. ` +
     `<b>Taps/views</b> = commission-screen opens from each app's own Mixpanel project: Presell (EU), Tele-Sales and CashVan (US); CashVan agents are matched by phone number. <b>Managers</b> add the commission auditor's agent-sheet opens from the Control Tower project (<b>Agent Commission Sheet Opened</b>). All four daily lines divide the day's opens by the people who opened that day. ` +
     `<b>Unlock day</b> = first day of a month where the Presell progress card showed <b>unlocked = true</b> — the app's own achievement number; Nov-1 flags reflect October's state and are excluded. ` +
-    `Tele-Sales and CashVan apps don't emit an unlock event yet, so unlock days for those channels can't be reached. ` +
+    `Telesales and CashVan apps already show commission progress; they don't emit an unlock event yet (card 4), so their unlock days are plan-derived (section 2) rather than app-reported. ` +
     `<b>Fulfillment quantities</b> = assigned vs delivered units from presentation.fulfillment_agent, joined to agents through the legacy roster. ` +
     `Unlock history is fixed for past months; new months follow the runbook in insights/README.md. <b>Last order</b> (section 7) = each agent’s <b>last_active</b> business date — the newest day with any order, call, or fulfillment activity across the analytics tables, through 22 Nov.`;
 
