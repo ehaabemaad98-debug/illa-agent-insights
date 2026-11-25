@@ -750,7 +750,7 @@
     </div>
 
     <div class="rep-section">
-      <h2>7 · What could we do next?</h2>
+      <h2>7 · What we do next — adoption gaps, plans &amp; target achievement</h2>
       <p class="lede" id="recoLede">…</p>
       <div id="zeroOpen"></div>
       <div id="recoList" style="margin-top:18px"></div>
@@ -758,8 +758,7 @@
       <p class="rep-note">The figures overlap (an agent can appear in more than one proposal), so don't add them up.</p>
     </div>
 
-    <div class="rep-section">
-      <h2>8 · Target achievement — who hits, who misses, and how we move both</h2>
+      <h3 style="margin:26px 0 8px;font-size:18px">Target achievement — who hits, who misses, and how we move both</h3>
       <p class="lede" id="tgtLede">…</p>
       <div id="tgtHow"></div>
       <div id="tgtDist"></div>
@@ -774,7 +773,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v14 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v15 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -2032,6 +2031,12 @@ function renderReportInner() {
     if (!seenNames.has(k) || r.last > seenNames.get(k).last) seenNames.set(k, r);
   }
   const zeroOpenDedup = [...seenNames.values()].sort((x, y) => (x.st === y.st ? x.days - y.days : x.st.localeCompare(y.st)));
+  // dynamic dates: "when" fields follow the real calendar on every render
+  const M_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const nowD = new Date();
+  const NEXT_M = M_NAMES[(nowD.getMonth() + 1) % 12];
+  const MN2 = M_NAMES[(nowD.getMonth() + 2) % 12];
+  const CUR_M = M_NAMES[nowD.getMonth()];
   const zA = zeroOpenDedup.filter((r) => r.st === "a").length;
   const zS = zeroOpenDedup.filter((r) => r.st === "s").length;
   const zL = zeroOpenDedup.filter((r) => r.st === "l").length;
@@ -2044,14 +2049,14 @@ function renderReportInner() {
       `<div class="rep-kpi"><div class="l">Likely left — &gt; 60 days</div><div class="v">${zL}</div><div class="d" style="color:var(--muted-foreground)">roster / device cleanup</div></div>` +
     `</div>` +
     `<div class="unlock-tbl" style="margin-top:12px"><table><thead><tr><th>Agent</th><th>Channel</th><th>Governorate</th><th>Last order</th><th class="num">Days since</th><th>Status</th></tr></thead><tbody>` +
-    (zeroOpenDedup.length
-      ? zeroOpenDedup.map((r) =>
+    (zeroOpenDedup.filter((r) => r.st !== "l").length
+      ? zeroOpenDedup.filter((r) => r.st !== "l").map((r) =>
           `<tr><td><b>${r.a.agent_name}</b></td><td>${chLabel(r.a.agent_type)}</td><td>${(r.a.governorates ?? []).length ? r.a.governorates.map((g) => GOV_EN[g] ?? g).join(", ") : "Other"}</td>` +
           `<td>${r.last}</td><td class="num">${r.days}</td><td><span class="st ${r.st}">${r.stLabel}</span></td></tr>`
         ).join("")
       : `<tr><td colspan="6">Every tracked agent opened a commission screen at least once.</td></tr>`) +
     `</tbody></table></div>` +
-    `<p class="rep-note">"Last order" = the agent's <b>last_active</b> date in the analytics data — the newest business date with any order, call, or fulfillment activity (data through 22 Nov). The 30/60-day split is a working rule, not an HR record: confirm leavers against the supervisor list before removing anyone.</p>`;
+    `<p class="rep-note">"Last order" = the agent's <b>last_active</b> date in the analytics data — the newest business date with any order, call, or fulfillment activity (data through 22 Nov). The table lists only the <b>${zA + zS} actionable names</b> (active + slipping). The <b>${zL} likely-left</b> are counted above but deliberately not listed — confirm them against HR/ops before treating anyone as a leaver. The 30/60-day split is a working rule, not an HR record.</p>`;
 
   // ── the proposals themselves
   const neverAvg = neverNow ? avg(continuing.filter((r) => r.cohort === "never").map((r) => r.aAvg)) : 0;
@@ -2059,7 +2064,7 @@ function renderReportInner() {
   const recos = [
     {
       t: `Follow up with the ${zA + zS} agents who never opened a commission screen and are still active.`,
-      problem: `Of ${new Set(DATA.agents.map((x) => x.agent_name.trim().toLowerCase())).size} tracked people, ${zeroOpenDedup.length} have <b>zero</b> commission-screen opens. ${zA} of them placed an order within the last 30 days (still selling — just not using the feature), ${zS} are 31–60 days without activity, and ${zL} look like leavers. Names, last orders and statuses are in the table above.`,
+      problem: `Of ${new Set(DATA.agents.map((x) => x.agent_name.trim().toLowerCase())).size} tracked people, ${zeroOpenDedup.length} have <b>zero</b> commission-screen opens. ${zA} of them placed an order within the last 30 days (still selling — just not using the feature), ${zS} are 31–60 days without activity, and ${zL} look like leavers — counted above, listed nowhere until HR/ops confirms. The ${zA + zS} actionable names are in the table above.`,
       why: `The card can only motivate agents who see it. An active seller who never opens the screen gets zero benefit from the feature — and every "never unlocked" agent in the revenue comparison is partly a <b>visibility failure</b>, not a performance failure. Before any coaching program, we need to know who can actually be reached.`,
       solution: `Split the list into two actions. <b>(1) Adoption:</b> each supervisor sits with their active zero-open agents, opens the commission screen together once, and shows the agent their own 70% bar. <b>(2) Hygiene:</b> send the ${zL} likely-left names to HR/ops to confirm, then clean the roster and the CashVan device list.`,
       when: `Adoption sessions <b>this week</b> (before the month-end push, while there's still time to move November). Roster confirmations in the next weekly ops meeting.`,
@@ -2071,7 +2076,7 @@ function renderReportInner() {
       problem: `${neverNow} continuing agents never crossed the 70% threshold. They average <b>${fmtEGP(neverAvg)}</b> per month since launch vs <b>${fmtEGP(unlockAvg)}</b> for agents who unlocked.`,
       why: `That per-agent gap is the feature's biggest unrealized value. Closing even a quarter of it across the group is worth roughly <b>${fmtEGP(0.25 * neverNow * Math.max(unlockAvg - neverAvg, 0))}</b> a month.`,
       solution: `A named coaching list with each agent's distance-to-70%, run by supervisors with the same talk track as the zero-open adoption sessions.`,
-      when: `Kick off with the December target cycle; review the list after 4 weeks.`,
+      when: `Kick off with the ${NEXT_M} target cycle; review the list after 4 weeks.`,
       how: `Take the unlock table (section 2) filtered to the "—" rows, rank by revenue gap vs their own before-average, and coach the top 10 first — biggest gaps move the number fastest.`,
       badge: ["strong", "Strong evidence"],
     },
@@ -2098,7 +2103,7 @@ function renderReportInner() {
       problem: `October was our <b>best revenue month so far</b> — and the card's first full month. The overlap is suggestive, not proof: market momentum could explain part or all of it.`,
       why: `One strong month next to a launch is a hypothesis, not a verdict. December answers whether the level <b>repeats</b> with the card live — that repetition is the closest thing to evidence this setup can produce.`,
       solution: `Pre-commit to a like-for-like December-vs-October verdict <b>before</b> looking at December's numbers.`,
-      when: `January 1 review — no peeking before month-end.`,
+      when: `${MN2} 1 review — no peeking before month-end.`,
       how: `Same continuing-agent cohort, same revenue convention as this report's section 3. If December holds October's behavior, the feature keeps the benefit of the doubt; if it craters, we look elsewhere — and either way the decision is made on data.`,
       badge: ["check", "Check first"],
     },
@@ -2152,7 +2157,7 @@ function renderReportInner() {
       `<div class="rep-kpi"><div class="l">1 · Target set</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Supervisor sets each agent's monthly EGP target in Control Tower's commission plan</div></div>` +
       `<div class="rep-kpi"><div class="l">2 · Live progress</div><div class="v">%</div><div class="d" style="color:var(--muted-foreground)">The Presell card shows the agent's own achievement % all month, updated with every delivered order</div></div>` +
       `<div class="rep-kpi"><div class="l">3 · 70% unlock</div><div class="v">≥70%</div><div class="d" style="color:var(--muted-foreground)">Crossing 70% of target unlocks the commission — 27 of 42 field agents did it in October</div></div>` +
-      `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (section 7)</div></div>` +
+      `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (card 6 above)</div></div>` +
     `</div>`;
 
   // ── October (final) distribution summary
@@ -2212,7 +2217,7 @@ function renderReportInner() {
   // ── why agents don't reach the target (data-driven buckets, computed from the roster)
   const whyBuckets = [
     { k: "n", label: "No target set — the game wasn't playable", get: () => octNone, note: "Process gap, not performance: an agent without a target row can't see progress or unlock, even while selling." },
-    { k: "l2", label: "Likely left the company (no activity > 60 days)", get: () => TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70 && (tgtDays(r[0]) ?? 999) > 60), note: "Their miss is a people gap — handle in the section 7 roster cleanup, not coaching." },
+    { k: "l2", label: "Likely left the company (no activity > 60 days)", get: () => TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70 && (tgtDays(r[0]) ?? 999) > 60), note: "Their miss is a people gap — handle in the roster cleanup above, not coaching." },
     { k: "s2", label: "Inactive this month (31–60 days)", get: () => TGT_OCT.filter((r) => { const d = tgtDays(r[0]); return r[4] < 70 && d != null && d > 30 && d <= 60; }), note: "Slipping out of the roster — intervene this week." },
     { k: "v", label: "Never opens the commission screen (visibility gap)", get: () => TGT_OCT.filter((r) => r[4] < 70 && tgtClicks(r[0]) === 0 && (tgtDays(r[0]) ?? 999) <= 30), note: "Selling without ever seeing their bar — the feature can't motivate what it can't reach." },
     { k: "d", label: "Running far below their own October pace", get: () => TGT_NOV.filter((r) => (octPct[r[0]] ?? 0) >= 50 && r[4] < (octPct[r[0]] ?? 0) * 0.5), note: "Mid-month signal, not a verdict: November bars were also raised (roster 42→33), and the final-week push is still pending. If the gap persists into December, it is a real decline — supervisor 1:1." },
@@ -2236,18 +2241,18 @@ function renderReportInner() {
       t: `Pull the ${octNear.length + octMiss.filter((r) => (tgtDays(r[0]) ?? 999) <= 30).length} live non-achievers over the 70% line.`,
       problem: `In October ${TGT_OCT.filter((r) => r[2] > 0 && r[4] < 70).length} agents with a real target finished under 70% — the closest at 49.7%, and nobody landed in the 50–70 band: the final-week push either lands or the month collapses. November is mid-flight with the same dynamic ahead — ${lateOct.length} of October's unlockers only crossed after day 25.`,
       why: `Near-miss agents are the cheapest wins in the whole system: they already sell at ~2/3 of target, so the gap is motivation cadence, not capability. Fixing the no-target process gap also un-blocks agents who are literally selling without being allowed to unlock.`,
-      solution: `Three moves. <b>(1)</b> Supervisor deal with each near-miss agent: day-15 checkpoint, weekly pace vs their own target. <b>(2)</b> Sales-ops rule: <b>no agent starts a month without a target row</b> — the ${octNone.length} October cases must not repeat in December. <b>(3)</b> Inactive-month agents go through the section 7 list first (adoption vs leaver).`,
-      when: `Target-rule fix before <b>Dec 1</b>; near-miss deals start day 1 of December with the day-15 checkpoint.`,
-      how: `From the October table: sort by "Achieved", coach the closest-to-70% rows first (49.7% leads), and agree one weekly number per agent ("you need ${fmtEGP(200000)} a week"). Track the same table in December — success = the under-70% count drops and a real 50–70% band appears mid-month.`,
+      solution: `Three moves. <b>(1)</b> Supervisor deal with each near-miss agent: day-15 checkpoint, weekly pace vs their own target. <b>(2)</b> Sales-ops rule: <b>no agent starts a month without a target row</b> — the ${octNone.length} October cases must not repeat in December. <b>(3)</b> Inactive-month agents go through the zero-open list above first (adoption vs leaver).`,
+      when: `Target-rule fix before <b>1 ${NEXT_M}</b>; deals start day 1 of ${NEXT_M} with the day-15 checkpoint.`,
+      how: `From the October table: sort by "Achieved", coach the closest-to-70% rows first (49.7% leads), and agree one weekly number per agent ("you need ${fmtEGP(200000)} a week"). Track the same table in ${NEXT_M} — success = the under-70% count drops and a real 50–70% band appears mid-month.`,
       badge: ["strong", "Strong evidence"],
     },
     {
       t: `Turn the ${octHi.length} October achievers into repeaters — only ${streak2} unlocked both September AND October.`,
       problem: `${octHi.length} agents unlocked in October, but just ${streak2} did it two months running. One-off unlocks don't compound; the OKR is faster target-hitting, every month.`,
       why: `${top5} finished above 90% — they have headroom, and stretch targets convert over-achievement into company revenue. Meanwhile agents at 70–75% are one bad week from losing it: consistency, not the single unlock, is what the payout system should reward.`,
-      solution: `<b>(1)</b> Streak recognition: "unlocked twice in a row" called out in the monthly meeting — cheap, public, repeatable. <b>(2)</b> Stretch +7.5% targets for the ${octHi.filter((r) => r[4] >= 90).length} agents above 90%. <b>(3)</b> Keep their payouts confirmed and on time (section 7, card 6) — the whole mechanic rests on the money arriving.`,
-      when: `Streak recognition at the November close meeting; stretch targets set with the December plans.`,
-      how: `Compute the streak list from the unlock table (Sep + Oct both non-"—"), pick the ≥90% names from the October table above, and have supervisors open the December conversation with "you did ${fmtPct(90)} — here's the plan to do it again, slightly bigger."`,
+      solution: `<b>(1)</b> Streak recognition: "unlocked twice in a row" called out in the monthly meeting — cheap, public, repeatable. <b>(2)</b> Stretch +7.5% targets for the ${octHi.filter((r) => r[4] >= 90).length} agents above 90%. <b>(3)</b> Keep their payouts confirmed and on time (card 6 above) — the whole mechanic rests on the money arriving.`,
+      when: `Streak recognition at the ${CUR_M} close meeting; stretch targets set with the ${NEXT_M} plans.`,
+      how: `Compute the streak list from the unlock table (Sep + Oct both non-"—"), pick the ≥90% names from the October table above, and have supervisors open the ${NEXT_M} conversation with "you did ${fmtPct(90)} — here's the plan to do it again, slightly bigger."`,
       badge: ["check", "Check first"],
     },
   ];
@@ -2264,7 +2269,7 @@ function renderReportInner() {
     ).join("");
 
   document.getElementById("tgtNote").innerHTML =
-    `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts), read from the <b>production</b> database — the same source the apps read — October rows are the concluded month, November rows are live through Nov 24, read from the <b>production</b> commission database — the same source the apps read (refreshed every 15 min) — and <b>are not a final verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (section 7, card 4), so their target story can't be told per-agent until those apps ship the card.`;
+    `<b>Data notes:</b> Target/actual/achievement come from the commission engine's own records (commission_payouts), read from the <b>production</b> database — the same source the apps read — October rows are the concluded month, November rows are live through Nov 24, read from the <b>production</b> commission database — the same source the apps read (refreshed every 15 min) — and <b>are not a final verdict</b>. Actual for field agents is the engine's delivered-GMV measure, which can differ slightly from the total_revenue used elsewhere in this report. Agents without a plan row (new joiners mid-month, out-of-plan staff) are invisible here — that is itself the "no target" finding. Tele-Sales (5 agents) and Fulfillment (34 agents, carton-denominated) run separate plans on the same mechanic; their unlock events don't exist yet (card 4 above), so their target story can't be told per-agent until those apps ship the card.`;
 
   // ── methodology
   document.getElementById("repMethod").innerHTML =
