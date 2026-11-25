@@ -775,7 +775,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v18 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v19 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -1575,18 +1575,19 @@ function renderReportInner() {
 
   // ════════ SECTION 2 — unlock-day table (fastest first, colored, weekly stats, derived table) ════════
   // derived crossings computed from daily actuals vs commission-plan targets (see repDerived note)
-  const TSL_UNLOCK = [
-    ["asmaa elsayed elshamrokh","Oct",12750000,null,null,false,2.5],
-    ["asmaa elsayed elshamrokh","Nov",8000000,null,null,true,3.7],
-    ["hayah kamal","Oct",4500000,null,null,false,12.1],
-    ["hayah kamal","Nov",4000000,null,null,true,10.3],
-    ["tasneem mahrez","Oct",12750000,null,null,false,1.7],
-    ["tasneem mahrez","Nov",6000000,null,null,true,2.3],
-    ["walaa abdeluhamied","Oct",7000000,null,null,false,10.7],
-    ["walaa abdeluhamied","Nov",7000000,null,null,true,8.8],
-    ["yasmen badr abduelaty","Oct",4000000,null,null,false,12.4],
-    ["yasmen badr abduelaty","Nov",5000000,null,null,true,6],
+  const TSL_UNLOCK = [ // engine route-based payout records (production) — NOT the ETL proxy
+    ["yasmen badr abduelaty","Oct",4000000,null,89.2,false,89.2],
+    ["hayah kamal","Oct",4500000,null,77.0,false,77.0],
+    ["tasneem mahrez","Oct",12750000,null,72.1,false,72.1],
+    ["walaa abdeluhamied","Oct",7000000,null,71.1,false,71.1],
+    ["asmaa elsayed elshamrokh","Oct",12750000,null,70.4,false,70.4],
+    ["asmaa elsayed elshamrokh","Nov",8000000,null,70.4,true,70.4],
+    ["tasneem mahrez","Nov",6000000,null,70.3,true,70.3],
+    ["walaa abdeluhamied","Nov",7000000,null,62.1,true,62.1],
+    ["hayah kamal","Nov",4000000,null,60.1,true,60.1],
+    ["yasmen badr abduelaty","Nov",5000000,null,57.1,true,57.1],
   ];
+
   const FUL_UNLOCK = []; /* production targets for Oct AND Nov are still the flat 70-carton placeholder rows (pre-carton era) — actuals run 100×+ above them, so a 70% crossing can't be derived honestly until targets are re-entered as cartons (DIS-1273 runbook). Telesales rows below remain valid. */
   const FUL_UNUSED = [
     ["Muhammed Ahmed Shawki","Nov",3000,3,71.7,false,189.3],
@@ -1659,7 +1660,7 @@ function renderReportInner() {
   const uMedDay = uDays.length ? uDays[Math.floor(uDays.length / 2)] : 0;
   const uAvgDay = uEvCount ? Math.round((uDaySum / uEvCount) * 10) / 10 : 0;
   document.getElementById("unlockLede").innerHTML =
-    `${unlockRows.length} sales agents have crossed the <b>70% threshold</b> at least once — <b>ordered fastest unlock first</b>, each day colored by speed (green ≤ day 15, amber 16–25, red after 25). Across all ${uEvCount} unlock events the average crossing lands on <b>day ${uAvgDay}</b> (median day ${uMedDay}) — the month-end pattern in one number. Telesales and fulfillment agents open commission screens too (section 1), but their apps don't emit an unlock event — their <b>plan-derived</b> crossings are in the second table below.`;
+    `${unlockRows.length} sales agents have crossed the <b>70% threshold</b> at least once — <b>ordered fastest unlock first</b>, each day colored by speed (green ≤ day 15, amber 16–25, red after 25). Across all ${uEvCount} unlock events the average crossing lands on <b>day ${uAvgDay}</b> (median day ${uMedDay}) — the month-end pattern in one number. Telesales and fulfillment agents open commission screens too (section 1), but their apps don't emit an unlock event — their crossings are in the second table below (telesales from the engine's own records, fulfillment pending real targets).`;
   document.getElementById("unlockStats").innerHTML =
     `<div class="rep-kpi"><div class="l">Week 1 · days 1–7</div><div class="v">${uWk[0]}</div><div class="d" style="color:var(--muted-foreground)">unlock events</div></div>` +
     `<div class="rep-kpi"><div class="l">Week 2 · days 8–14</div><div class="v">${uWk[1]}</div><div class="d" style="color:var(--muted-foreground)">unlock events</div></div>` +
@@ -1684,10 +1685,12 @@ function renderReportInner() {
   // plan-scope actual (telesales orders value / fulfillment delivered cartons) reached 70%
   // of that month's commission-plan target. Telesales targets mirror the company total, so a
   // per-agent crossing is mathematically out of reach — shown as-is, that IS the finding.
-  const DERIVED = [...TSL_UNLOCK.map((r) => ({ name: r[0], ch: "Telesales", month: r[1], target: r[2], crossed: r[3] ? { day: r[3], pct: r[4] } : null, open: r[5], pctEnd: r[6] })), ...FUL_UNLOCK.map((r) => ({ name: r[0], ch: "Fulfillment", month: r[1], target: r[2], crossed: r[3] ? { day: r[3], pct: r[4] } : null, open: r[5], pctEnd: r[6] }))];
+  const DERIVED = [...TSL_UNLOCK.map((r) => ({ name: r[0], ch: "Telesales", month: r[1], target: r[2], crossed: r[3] ? { day: r[3], pct: r[4] } : (r[4] >= 70 ? { day: null, pct: r[4] } : null), open: r[5], pctEnd: r[6] })), ...FUL_UNLOCK.map((r) => ({ name: r[0], ch: "Fulfillment", month: r[1], target: r[2], crossed: r[3] ? { day: r[3], pct: r[4] } : null, open: r[5], pctEnd: r[6] }))];
   const derCell = (r) => r.crossed
-    ? `<span class="st ${r.crossed.day <= 15 ? "a" : r.crossed.day <= 25 ? "s" : "l"}">day ${r.crossed.day}</span> · ${r.crossed.pct}% of target`
-    : r.open ? `<span class="st n">not by Nov 22</span> · ${r.pctEnd}% so far` : `<span class="st n">never</span> · ${r.pctEnd}% of target`;
+    ? (r.crossed.day
+        ? `<span class="st ${r.crossed.day <= 15 ? "a" : r.crossed.day <= 25 ? "s" : "l"}">day ${r.crossed.day}</span> · ${r.crossed.pct}% of target`
+        : `<span class="st a">crossed</span> · ${r.crossed.pct}% of target`)
+    : r.open ? `<span class="st n">not yet</span> · ${r.pctEnd}% (live Nov 24)` : `<span class="st n">below</span> · ${r.pctEnd}% of target`;
   const fulCrossed = FUL_UNLOCK.filter((r) => r[3]).length;
   const fulFirstWeek = FUL_UNLOCK.filter((r) => r[3] && r[3] <= 7).length;
   document.getElementById("repDerived").innerHTML =
@@ -1696,7 +1699,7 @@ function renderReportInner() {
     DERIVED.map((r) =>
       `<tr><td><b>${r.name}</b></td><td>${r.ch}</td><td>${r.month}</td><td class="num">${r.ch === "Telesales" ? fmtEGP(r.target) : fmtInt(r.target) + " cartons"}</td><td>${derCell(r)}</td></tr>`
     ).join("") + `</tbody></table></div>` +
-    `<p class="rep-note"><b>How this is derived:</b> both apps already show commission progress — the only missing piece is the unlock event (card 4). Until it ships, the day here is derived: the first day the agent's cumulative month actual (telesales delivered orders value from the analytics tables) reached <b>70% of their commission-plan target</b>; November counts through Nov 22 (analytics daily data). <b>Fulfillment: omitted rather than faked</b> — production targets for October AND November are still the flat 70-carton placeholder rows (pre-carton era), and actuals run 100×+ above them, so no honest per-agent crossing exists until targets are re-entered as cartons (the runbook from the carton switch). <b>Telesales: nobody can cross</b> — October targets mirror the company total (41M split across 5 agents) and November mirrors 30M, so 2–12% attainment is a target-calibration finding, not a performance one. Same pattern, one fix: per-agent targets.</p>`;
+    `<p class="rep-note"><b>How this is derived:</b> both apps already show commission progress — the only missing piece is the unlock event (card 4). Until it ships, the day here is derived: the first day the agent's cumulative month actual (telesales delivered orders value from the analytics tables) reached <b>70% of their commission-plan target</b>; November counts through Nov 22 (analytics daily data). <b>Fulfillment: omitted rather than faked</b> — production targets for October AND November are still the flat 70-carton placeholder rows (pre-carton era), and actuals run 100×+ above them, so no honest per-agent crossing exists until targets are re-entered as cartons (the runbook from the carton switch). <b>Telesales rows read from the engine's own route-based payout records</b> — the orders-value proxy understated actuals 6–12×. October: <b>5 of 5 crossed</b> (89.2 / 77.0 / 72.1 / 71.1 / 70.4%). November live: <b>2 of 5 crossed</b> (asmaa 70.4%, tasneem 70.3%) as of Nov 24 — the other three (62.1 / 60.1 / 57.1%) are the manager-diagnostic cases. Daily crossing days need the unlock event (card 4); targets still need per-agent calibration for fairness (bars range 4M–12.75M).</p>`;
 
   // ════════ SECTION 2.5 — unlock behavior (histogram + pre/post engagement)
   const behMonths = { sep: { start: 0, len: 30 }, oct: { start: 30, len: 31 }, nov: { start: 61, len: 22 } };
@@ -2074,10 +2077,10 @@ function renderReportInner() {
       badge: ["strong", "Strong evidence"],
     },
     {
-      t: `Rescue program: everyone below the bar — ${TGT_NOV.filter((r) => r[4] < 70).length} sales, 5 telesales (blocked), 32 fulfillment (blocked).`,
-      problem: `Production (Nov 24): <b>${TGT_NOV.filter((r) => r[4] >= 70).length} of ${TGT_NOV.length} sales agents already crossed 70%</b> — ${TGT_NOV.filter((r) => r[4] < 70).length} haven't, and their names with work status are in the table below this card. <b>Telesales can't play at all</b>: their targets mirror the company total. <b>Fulfillment can't either</b>: targets are still flat 70-carton placeholder rows.`,
+      t: `Rescue program: everyone below the bar — ${TGT_NOV.filter((r) => r[4] < 70).length} sales, 3 telesales, 32 fulfillment below it.`,
+      problem: `Production (Nov 24): <b>${TGT_NOV.filter((r) => r[4] >= 70).length} of ${TGT_NOV.length} sales agents already crossed 70%</b> — ${TGT_NOV.filter((r) => r[4] < 70).length} haven't, and their names with work status are in the table below this card. <b>Telesales: 3 of 5 still below the bar</b> (asmaa & tasneem already crossed — the engine's route-based actuals make the game playable; targets need per-agent calibration for fairness). <b>Fulfillment can't play yet</b>: targets are still flat 70-carton placeholder rows.`,
       why: `These are the cheapest wins in the system — the sales names below the bar already sell at roughly half to two-thirds of target, so the gap is cadence, not capability. The two blocked channels need their targets fixed before any coaching there can count.`,
-      solution: `<b>Sales:</b> supervisor deals with a weekly number per agent. <b>Telesales:</b> recalibrate to per-agent targets (Tabie & Bisho's Q4 objective). <b>Fulfillment:</b> re-enter targets as cartons, then the same program applies.`,
+      solution: `<b>Sales:</b> supervisor deals with a weekly number per agent. <b>Telesales:</b> calibrate per-agent targets for fairness, then push the three below-bar TAs (manager diagnostic first). <b>Fulfillment:</b> re-enter targets as cartons, then the same program applies.`,
       when: `Deals start day 1 of ${NEXT_M} with the day-15 checkpoint; target fixes land before <b>1 ${NEXT_M}</b>.`,
       how: `Export the names table below (each agent's Nov %, whether they ever unlocked before, and whether they're still working), hand each supervisor only their rows, and track the merged table in ${NEXT_M} — success = the below-bar count halves.`,
       badge: ["strong", "Strong evidence"],
