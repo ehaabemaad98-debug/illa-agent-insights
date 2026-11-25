@@ -775,7 +775,7 @@
       <p class="lede" id="repMethod">…</p>
     </div>
 
-    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v17 · 25 Nov 2026</div>
+    <div class="rep-foot">This page is refreshed on request from live data — press <b>Sync now</b> in the Insights view, then reopen this tab. · build v18 · 25 Nov 2026</div>
   </section>
 </main>
 
@@ -2109,15 +2109,6 @@ function renderReportInner() {
       how: `Same continuing-agent cohort, same revenue convention as this report's section 3. If December holds October's behavior, the feature keeps the benefit of the doubt; if it craters, we look elsewhere — and either way the decision is made on data.`,
       badge: ["check", "Check first"],
     },
-    {
-      t: `Confirm every October unlocker's payout actually landed.`,
-      problem: `${unlockers.filter((r) => UNLOCK_DAYS[r.a.agent_id]?.oct).length} agents unlocked in October — the celebration promised them money.`,
-      why: `One missed payout after an unlock kills the mechanic's credibility with the <b>whole roster</b>, not just the affected agent. Trust is the feature's only real asset.`,
-      solution: `Cross-check every October unlocker against actual commission payout records.`,
-      when: `Before the next unlock wave lands at the end of this month.`,
-      how: `Join the unlock list (section 2) with payout records; flag any name with an unlock but no payout; fix those cases and tell the agents it was fixed — the fix is the story agents will repeat to each other.`,
-      badge: ["check", "Check first"],
-    },
   ];
   document.getElementById("recoList").innerHTML = recos.map((r, i) =>
     `<div class="reco"><div class="num">${i + 1}</div><div><h4>${r.t}</h4>` +
@@ -2174,7 +2165,7 @@ function renderReportInner() {
       `<div class="rep-kpi"><div class="l">1 · Target set</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Supervisor sets each agent's monthly EGP target in Control Tower's commission plan</div></div>` +
       `<div class="rep-kpi"><div class="l">2 · Live progress</div><div class="v">%</div><div class="d" style="color:var(--muted-foreground)">Each app shows the agent's own achievement % all month — Presell progress card, Tele-Sales Commissions screen, CashVan commission tab — updated with every delivered order</div></div>` +
       `<div class="rep-kpi"><div class="l">3 · 70% unlock</div><div class="v">≥70%</div><div class="d" style="color:var(--muted-foreground)">Crossing 70% of target unlocks the commission — 27 of 42 field agents did it in October</div></div>` +
-      `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (card 6 above)</div></div>` +
+      `<div class="rep-kpi"><div class="l">4 · Payout</div><div class="v">EGP</div><div class="d" style="color:var(--muted-foreground)">Commission lands after month-end approval — the reward has to actually arrive (the payout verification view below closes the loop)</div></div>` +
     `</div>`;
 
   // ── October (final) distribution summary
@@ -2261,7 +2252,7 @@ function renderReportInner() {
       t: `Turn the ${octHi.length} October achievers into repeaters — only ${streak2} unlocked both September AND October.`,
       problem: `${octHi.length} agents unlocked in October, but just ${streak2} did it two months running. One-off unlocks don't compound; the OKR is faster target-hitting, every month.`,
       why: `${top5} finished above 90% — they have headroom, and stretch targets convert over-achievement into company revenue. Meanwhile agents at 70–75% are one bad week from losing it: consistency, not the single unlock, is what the payout system should reward.`,
-      solution: `<b>(1)</b> Streak recognition: "unlocked twice in a row" called out in the monthly meeting — cheap, public, repeatable. <b>(2)</b> Stretch +7.5% targets for the ${octHi.filter((r) => r[4] >= 90).length} agents above 90%. <b>(3)</b> Keep their payouts confirmed and on time (card 6 above) — the whole mechanic rests on the money arriving.`,
+      solution: `<b>(1)</b> Streak recognition: "unlocked twice in a row" called out in the monthly meeting — cheap, public, repeatable. <b>(2)</b> Stretch +7.5% targets for the ${octHi.filter((r) => r[4] >= 90).length} agents above 90%. <b>(3)</b> Keep their payouts confirmed and on time — the whole mechanic rests on the money arriving.`,
       when: `Streak recognition at the ${CUR_M} close meeting; stretch targets set with the ${NEXT_M} plans.`,
       how: `Compute the streak list from the unlock table (Sep + Oct both non-"—"), pick the ≥90% names from the October table above, and have supervisors open the ${NEXT_M} conversation with "you did ${fmtPct(90)} — here's the plan to do it again, slightly bigger."`,
       badge: ["check", "Check first"],
@@ -2290,7 +2281,7 @@ function renderReportInner() {
     [
       ["Day-15 under-bar list", "Sales leadership", `One screen: every agent under a chosen pace on day 15 (configurable to any day) with the exact gap to 70% — replaces hunting through the auditor, and feeds the checkpoint program.`],
       ["Target-row gap guard", "Sales-ops · plan editors", `${octNone.length} agents had no October target — one sold ${fmtEGP(283380)} untracked. A banner in the plan editor plus a month-open checklist ends the gap for good.`],
-      ["Payout verification view", "Finance · CEO office", `One table: who unlocked vs whether the payout landed — one missed payout after a celebration costs the mechanic its credibility with the whole roster (card 6 above).`],
+      ["Payout verification view", "Finance · CEO office", `One table: who unlocked vs whether the payout landed — one missed payout after a celebration costs the mechanic its credibility with the whole roster.`],
       ["Carton-target validation + bulk suggest", "Sales-ops · fulfillment lead", `Production fulfillment targets are still flat 70-carton placeholder rows while actuals run in the thousands — validation blocks placeholders, and bulk-fill suggests each agent’s last-3-month average.`],
       ["Telesales per-agent target helper", "Plan editors", `Show each telesales agent’s route-based actuals for the last 3 months inside the target dialog, so targets stop mirroring the company total and a per-agent 70% becomes playable.`],
       ["Zero-open adoption tracker", "Supervisors", `A per-manager view of their own agents’ weekly commission-screen opens — closes the ${zA + zS}-agent zero-open gap without anyone asking the PM for lists.`],
